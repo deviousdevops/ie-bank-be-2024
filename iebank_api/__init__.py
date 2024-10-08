@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import os
+from sqlalchemy import text
 
 app = Flask(__name__)
 
@@ -21,6 +22,11 @@ db = SQLAlchemy(app)
 from iebank_api.models import Account
 
 with app.app_context():
+    # # Uncomment to add the country column to the account table
+    # query = text("ALTER TABLE account ADD COLUMN country VARCHAR(32)")
+    # db.session.execute(query)
+    # db.session.commit()
+
     db.create_all()
 CORS(app)
 

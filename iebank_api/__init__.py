@@ -4,7 +4,17 @@ from flask_cors import CORS
 import os
 from sqlalchemy import text
 
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+import os
+
 app = Flask(__name__)
+
+# Set up the database URI to use the /instance directory
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, '..', 'instance', 'iebank.db')
+
+db = SQLAlchemy(app)
 
 # Select environment based on the ENV environment variable
 if os.getenv('ENV') == 'local':
@@ -17,7 +27,6 @@ elif os.getenv('ENV') == 'ghci':
     print("Running in github mode")
     app.config.from_object('config.GithubCIConfig')
 
-db = SQLAlchemy(app)
 
 from iebank_api.models import Account
 

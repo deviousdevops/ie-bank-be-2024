@@ -7,12 +7,13 @@ from sqlalchemy import text
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
+import dotenv
+
+dotenv.load_dotenv()
 
 app = Flask(__name__)
 
-# Set up the database URI to use the /instance directory
-basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, '..', 'instance', 'iebank.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 
 db = SQLAlchemy(app)
 

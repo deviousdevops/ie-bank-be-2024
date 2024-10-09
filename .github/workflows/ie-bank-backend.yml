@@ -15,7 +15,7 @@ env:
 
 jobs:
   build:
-    
+
     runs-on: ubuntu-latest
     env:
       ENV: ghci
@@ -47,7 +47,7 @@ jobs:
       with:
         name: python-app
         path: |
-          . 
+          .
 
   deploy:
     runs-on: ubuntu-latest
@@ -62,7 +62,7 @@ jobs:
       with:
         name: python-app
         path: .
-    
+
     - uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
@@ -73,4 +73,3 @@ jobs:
       with:
         app-name: ${{ env.BACKEND_WEBAPP_DEV }}
         package: .
-    

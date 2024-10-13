@@ -24,19 +24,20 @@ def skull():
 
 @app.route('/accounts', methods=['POST'])
 def create_account():
-    name = request.json['name']
-    if not name:
-        abort(500)
-    currency = request.json['currency']
-    if not currency:
-        abort(500)
-    country = request.json['country']
-    if not country:
-        abort(500)
+    data = request.get_json()
+    required_fields = ['name', 'currency', 'country']
+    if not data or not all(field in data for field in required_fields):
+        abort(500)  # Abort with 500 Internal Server Error if any field is missing
+
+    name = data['name']
+    currency = data['currency']
+    country = data['country']
+
     account = Account(name, currency, country)
     db.session.add(account)
     db.session.commit()
     return format_account(account)
+
 
 @app.route('/accounts', methods=['GET'])
 def get_accounts():

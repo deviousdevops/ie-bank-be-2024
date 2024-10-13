@@ -42,8 +42,6 @@ def create_account():
 @app.route('/accounts', methods=['GET'])
 def get_accounts():
     accounts = Account.query.all()
-    if not accounts:
-        abort(500)
     return {'accounts': [format_account(account) for account in accounts]}
 
 @app.route('/accounts/<int:id>', methods=['GET'])

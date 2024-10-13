@@ -149,6 +149,7 @@ def test_delete_account(testing_client):
         f"Failed to get all accounts. Status: {get_all_response.status_code}, "
         f"Response: {get_all_response.data.decode('utf-8')}"
     )
+
     accounts_data = get_all_response.get_json()
     assert accounts_data is not None, "Get all accounts response didn't return JSON data"
     account_ids = [account['id'] for account in accounts_data.get('accounts', [])]
@@ -159,10 +160,11 @@ def test_get_nonexistent_account(testing_client):
     """
     GIVEN a Flask application
     WHEN a non-existent account is requested (GET)
-    THEN check that a 500 is returned
     """
     response = testing_client.get('/accounts/9999')  # Assuming this ID does not exist
     assert response.status_code == 500
+    # data = response.get_json()
+    # assert data == {}, "Expected empty dictionary when account does not exist"
 
 def test_update_nonexistent_account(testing_client):
     """

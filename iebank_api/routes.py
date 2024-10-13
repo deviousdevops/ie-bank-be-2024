@@ -25,8 +25,14 @@ def skull():
 @app.route('/accounts', methods=['POST'])
 def create_account():
     name = request.json['name']
+    if not name:
+        abort(500)
     currency = request.json['currency']
+    if not currency:
+        abort(500)
     country = request.json['country']
+    if not country:
+        abort(500)
     account = Account(name, currency, country)
     db.session.add(account)
     db.session.commit()

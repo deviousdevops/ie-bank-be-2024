@@ -119,7 +119,7 @@ def test_delete_account(testing_client):
     """
     GIVEN a Flask application
     WHEN the '/accounts/<id>' page is deleted (DELETE)
-    THEN check the response is valid
+    THEN check the response is valid and the account no longer exists
     """
     # First, create an account
     create_response = testing_client.post('/accounts', json={
@@ -140,6 +140,8 @@ def test_delete_account(testing_client):
     # Verify that the account was deleted
     get_response = testing_client.get(f'/accounts/{account_id}')
     assert get_response.status_code == 500
+    # error_data = get_response.get_json()
+    # assert error_data['error'] == f"Account with id {account_id} not found"
 
 def test_get_nonexistent_account(testing_client):
     """

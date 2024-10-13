@@ -127,17 +127,26 @@ def test_delete_account(testing_client):
         'currency': '$',
         'country': 'USA'
     })
-    assert create_response.status_code == 200
+    assert create_response.status_code == 200, (
+        f"Failed to create account. Status: {create_response.status_code}, Response: {create_response.data.decode('utf-8')}"
+    )
     account_data = create_response.get_json()
+    assert account_data is not None, "Create response didn't return JSON data"
+    assert 'id' in account_data, f"'id' not found in create response. Data: {account_data}"
     account_id = account_data['id']
 
     # Now, delete the account
     delete_response = testing_client.delete(f'/accounts/{account_id}')
-    assert delete_response.status_code == 200
+    assert delete_response.status_code == 200, (
+        f"Failed to delete account. Status: {delete_response.status_code}, Response: {delete_response.data.decode('utf-8')}"
+    )
 
     # Verify that the account was deleted
     get_response = testing_client.get(f'/accounts/{account_id}')
-    assert get_response.status_code == 500  # Changed from 404 to 500
+    assert get_response.status_code == 500, (
+        f"Expected 500 Internal Server Error when retrieving deleted account, "
+        f"got {get_response.status_code}. Response: {get_response.data.decode('utf-8')}"
+    )
 
 def test_get_nonexistent_account(testing_client):
     """

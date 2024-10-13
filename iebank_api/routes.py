@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, abort
 from iebank_api import db, app
 from iebank_api.models import Account
 
@@ -35,16 +35,22 @@ def create_account():
 @app.route('/accounts', methods=['GET'])
 def get_accounts():
     accounts = Account.query.all()
+    if not accounts:
+        abort(500)
     return {'accounts': [format_account(account) for account in accounts]}
 
 @app.route('/accounts/<int:id>', methods=['GET'])
 def get_account(id):
     account = Account.query.get(id)
+    if not account:
+        abort(500)
     return format_account(account)
 
 @app.route('/accounts/<int:id>', methods=['PUT'])
 def update_account(id):
     account = Account.query.get(id)
+    if not account:
+        abort(500)
     account.name = request.json['name']
     db.session.commit()
     return format_account(account)
@@ -52,6 +58,8 @@ def update_account(id):
 @app.route('/accounts/<int:id>', methods=['DELETE'])
 def delete_account(id):
     account = Account.query.get(id)
+    if not account:
+        abort(500)
     db.session.delete(account)
     db.session.commit()
     return format_account(account)

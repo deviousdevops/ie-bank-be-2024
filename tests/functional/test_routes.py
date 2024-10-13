@@ -154,3 +154,41 @@ def test_delete_account(testing_client):
     assert accounts_data is not None, "Get all accounts response didn't return JSON data"
     account_ids = [account['id'] for account in accounts_data.get('accounts', [])]
     assert account_id not in account_ids, "Deleted account still present in accounts list"
+
+
+def test_get_nonexistent_account(testing_client):
+    """
+    GIVEN a Flask application
+    WHEN a non-existent account is requested (GET)
+    """
+    response = testing_client.get('/accounts/9999')  # Assuming this ID does not exist
+    assert response.status_code == 500
+    # data = response.get_json()
+    # assert data == {}, "Expected empty dictionary when account does not exist"
+
+def test_update_nonexistent_account(testing_client):
+    """
+    GIVEN a Flask application
+    WHEN a non-existent account is updated (PUT)
+    THEN check that a 500 is returned
+    """
+    response = testing_client.put('/accounts/9999', json={'name': 'DoesNotExist'})
+    assert response.status_code == 500
+
+def test_delete_nonexistent_account(testing_client):
+    """
+    GIVEN a Flask application
+    WHEN a non-existent account is deleted (DELETE)
+    THEN check that a 500 is returned
+    """
+    response = testing_client.delete('/accounts/9999')
+    assert response.status_code == 500
+
+def test_create_account_missing_fields(testing_client):
+    """
+    GIVEN a Flask application
+    WHEN creating an account with missing fields (POST)
+    THEN check that a 500 is returned
+    """
+    response = testing_client.post('/accounts', json={'name': 'Incomplete'})
+    assert response.status_code == 500

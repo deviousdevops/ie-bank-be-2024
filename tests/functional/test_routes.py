@@ -140,8 +140,6 @@ def test_delete_account(testing_client):
     # Verify that the account was deleted
     get_response = testing_client.get(f'/accounts/{account_id}')
     assert get_response.status_code == 500
-    # error_data = get_response.get_json()
-    # assert error_data['error'] == f"Account with id {account_id} not found"
 
 def test_get_nonexistent_account(testing_client):
     """

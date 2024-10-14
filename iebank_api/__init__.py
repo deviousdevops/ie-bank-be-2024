@@ -4,9 +4,7 @@ from flask_cors import CORS
 import os
 from sqlalchemy import text
 
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-import os
+
 import dotenv
 
 dotenv.load_dotenv()

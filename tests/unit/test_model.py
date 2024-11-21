@@ -23,7 +23,7 @@ def test_create_user():
     """
     GIVEN a User model
     WHEN a new User is created
-    THEN check the name, email, password, country, state, date_of_birth, role, 
+    THEN check the username, email, password, country, state, date_of_birth, role, 
     status, created_at, updated_at, last_login_at, failed_login_attempts fields are 
     defined correctly
     """
@@ -31,17 +31,17 @@ def test_create_user():
     hashed_password = generate_password_hash(plain_password, method='sha256')
     
     user = User(
-                'John Doe', 
-                'email', 
-                hashed_password, 
-                'Spain', 
-                'Madrid', 
-                datetime.strptime('1980-01-01', '%Y-%m-%d'), 
-                'user', 
-                'Active'
+                username='johndoe', 
+                email='email@example.com', 
+                password=hashed_password, 
+                country='Spain', 
+                state='Madrid', 
+                date_of_birth=datetime.strptime('1980-01-01', '%Y-%m-%d'), 
+                role='user', 
+                status='Active'
                 )
-    assert user.name == 'John Doe'
-    assert user.email == 'email'
+    assert user.username == 'johndoe'
+    assert user.email == 'email@example.com'
     assert check_password_hash(user.password, plain_password)
     assert user.country == 'Spain'
     assert user.state == 'Madrid'

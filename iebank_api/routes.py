@@ -3,9 +3,6 @@ from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
 from werkzeug.security import generate_password_hash, check_password_hash
 
-import os
-
-app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')
 
 @app.route('/')
 def hello_world():

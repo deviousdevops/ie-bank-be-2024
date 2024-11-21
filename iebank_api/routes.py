@@ -3,6 +3,7 @@ from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
 from werkzeug.security import generate_password_hash, check_password_hash
 
+app.secret_key = 'your_secret_key'
 
 @app.route('/')
 def hello_world():
@@ -88,7 +89,7 @@ def user_portal():
         abort(500)
 
     accounts = Account.query.filter_by(user_id=user_id).all()
-    transactions = Transaction.query.join(Account).filter(Account.user_id == user_id).all()
+    transactions = Transaction.query.join(Account, Transaction.from_account_id == Account.id).filter(Account.user_id == user_id).all()
 
     return render_template('user_portal.html', user=user, accounts=accounts, transactions=transactions)
 
@@ -176,18 +177,20 @@ def create_transaction():
         abort(401)  # Unauthorized
 
     data = request.get_json()
-    required_fields = ['account_id', 'amount']
+    required_fields = ['from_account_id', 'to_account_id', 'amount']
     if not data or not all(field in data for field in required_fields):
         abort(500)
     
-    account_id = data['account_id']
+    from_account_id = data['from_account_id']
+    to_account_id = data['to_account_id']
     amount = data['amount']
     
-    account = Account.query.get(account_id)
-    if not account or account.user_id != session['user_id']:
+    from_account = Account.query.get(from_account_id)
+    to_account = Account.query.get(to_account_id)
+    if not from_account or from_account.user_id != session['user_id'] or not to_account:
         abort(500)
 
-    transaction = Transaction(account_id=account_id, amount=amount)
+    transaction = Transaction(from_account_id=from_account_id, to_account_id=to_account_id, amount=amount)
     db.session.add(transaction)
     db.session.commit()
     
@@ -200,7 +203,7 @@ def get_transactions():
         abort(401)  # Unauthorized
 
     user_id = session['user_id']
-    transactions = Transaction.query.join(Account).filter(Account.user_id == user_id).all()
+    transactions = Transaction.query.join(Account, Transaction.from_account_id == Account.id).filter(Account.user_id == user_id).all()
     return {'transactions': [format_transaction(transaction) for transaction in transactions]}
 
 @app.route('/send_money', methods=['POST'])
@@ -321,10 +324,10 @@ def format_transaction(transaction):
     # Helper function to format transaction data
     return {
         'id': transaction.id,
-        'account_id': transaction.account_id,
         'amount': transaction.amount,
+        'currency': transaction.from_account.currency,
         'status': transaction.status,
         'created_at': transaction.created_at,
-        'origin_account_number': transaction.account.account_number,
-        'destination_account_number': transaction.account.account_number  # Assuming you have a way to get the destination account number
+        'from_account': transaction.from_account.account_number,
+        'to_account': transaction.to_account.account_number
     }

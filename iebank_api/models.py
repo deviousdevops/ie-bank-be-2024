@@ -13,6 +13,8 @@ class Account(db.Model):
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', back_populates='accounts')
+    transactions_from = db.relationship('Transaction', foreign_keys='Transaction.from_account_id', back_populates='from_account', cascade='all, delete-orphan')
+    transactions_to = db.relationship('Transaction', foreign_keys='Transaction.to_account_id', back_populates='to_account', cascade='all, delete-orphan')
 
     def __repr__(self):
         return '<Account %r>' % self.account_number
@@ -58,17 +60,20 @@ class User(db.Model):
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    from_account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
+    to_account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(10), nullable=False, default="Pending")
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    account = db.relationship('Account', back_populates='transactions')
+    from_account = db.relationship('Account', foreign_keys=[from_account_id], back_populates='transactions_from')
+    to_account = db.relationship('Account', foreign_keys=[to_account_id], back_populates='transactions_to')
 
     def __repr__(self):
         return '<Transaction %r>' % self.id
 
-    def __init__(self, account_id, amount):
-        self.account_id = account_id
+    def __init__(self, from_account_id, to_account_id, amount):
+        self.from_account_id = from_account_id
+        self.to_account_id = to_account_id
         self.amount = amount
         self.status = "Pending"
 

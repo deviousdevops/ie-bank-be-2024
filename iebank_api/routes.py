@@ -3,8 +3,6 @@ from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
 from werkzeug.security import generate_password_hash, check_password_hash
 
-app.secret_key = 'your_secret_key'
-
 @app.route('/')
 def hello_world():
     # Basic route to check if the server is running

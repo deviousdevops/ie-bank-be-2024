@@ -1,5 +1,5 @@
 from iebank_api import db
-from datetime import datetime
+from datetime import datetime, timezone
 import string, random
 
 class Account(db.Model):
@@ -10,7 +10,7 @@ class Account(db.Model):
     currency = db.Column(db.String(1), nullable=False, default="€")
     country = db.Column(db.String(32), nullable=False, default="Spain")
     status = db.Column(db.String(10), nullable=False, default="Active")
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', back_populates='accounts')
     transactions_from = db.relationship('Transaction', foreign_keys='Transaction.from_account_id', back_populates='from_account', cascade='all, delete-orphan')
@@ -34,11 +34,10 @@ class User(db.Model):
     email = db.Column(db.String(64), nullable=False, unique=True)
     password = db.Column(db.String(64), nullable=False)
     country = db.Column(db.String(32), nullable=False, default="Spain")
-    state = db.Column(db.String(32), nullable=False, default="Madrid")
     date_of_birth = db.Column(db.DateTime, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    last_login_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
+    last_login_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     failed_login_attempts = db.Column(db.Integer, nullable=False, default=0)
     status = db.Column(db.String(10), nullable=False, default="Active")
     role = db.Column(db.Enum('admin', 'user', name='roles'), nullable=False, default='user')
@@ -47,16 +46,15 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username
 
-    def __init__(self, username, email, password, country, state, date_of_birth, role, status):
+    def __init__(self, username, email, password, country, date_of_birth):
         self.username = username
         self.email = email
         self.password = password
         self.country = country
-        self.state = state
         self.date_of_birth = date_of_birth
-        self.role = role
-        self.status = status
-        self.failed_login_attempts = 0
+        self.role = 'user'  # Default value
+        self.status = "Active"  # Default value
+        self.failed_login_attempts = 0  # Default value
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -76,5 +74,3 @@ class Transaction(db.Model):
         self.to_account_id = to_account_id
         self.amount = amount
         self.status = "Pending"
-
-Account.transactions = db.relationship('Transaction', back_populates='account', cascade='all, delete-orphan')

@@ -68,9 +68,7 @@ def test_register_user(testing_client):
         'password': 'password',
         'country': 'Spain',
         'state': 'Madrid',
-        'date_of_birth': '1980-01-01',
-        'role': 'user',
-        'status': 'Active'
+        'date_of_birth': '1980-01-01'
     })
     assert response.status_code == 200
 

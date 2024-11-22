@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from flask_cors import CORS
 import os
 from sqlalchemy import text
@@ -14,6 +15,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Select environment based on the ENV environment variable
 if os.getenv('ENV') == 'local':

@@ -1,4 +1,4 @@
-from iebank_api.models import Account, User
+from iebank_api.models import Account, User, Transaction
 from werkzeug.security import generate_password_hash, check_password_hash
 import pytest
 from datetime import datetime
@@ -52,4 +52,20 @@ def test_create_user():
     assert user.last_login_at is not None
     assert user.updated_at is not None
     assert user.created_at is not None
+    
+
+def test_create_transaction():
+    """
+    GIVEN a Transaction model
+    WHEN a new Transaction is created
+    THEN check the amount, description, status, created_at, from_account_id, and to_account_id fields are defined correctly
+    """
+    
+    transaction = Transaction(from_account_id=1, to_account_id=2, amount=100.0)
+    assert transaction.amount == 100.0
+    assert transaction.description is None
+    assert transaction.status == 'Pending'
+    assert transaction.created_at is not None
+    assert transaction.from_account_id == 1
+    assert transaction.to_account_id == 2
     

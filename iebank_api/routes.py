@@ -2,6 +2,7 @@ from flask import Flask, request, abort, session, render_template
 from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 @app.route('/')
 def hello_world():
@@ -27,21 +28,21 @@ def skull():
 def register():
     # Route to register a new user
     data = request.get_json()
-    required_fields = ['username', 'email', 'password', 'country', 'state', 'date_of_birth', 'role', 'status']
+    required_fields = ['username', 'email', 'password', 'country', 'date_of_birth']
     if not data or not all(field in data for field in required_fields):
         abort(500)
     
-    hashed_password = generate_password_hash(data['password'], method='sha256')
+    hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
+    
+    # Convert date_of_birth to a datetime object
+    date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d')
     
     new_user = User(
         username=data['username'],
         email=data['email'],
         password=hashed_password,
         country=data['country'],
-        state=data['state'],
-        date_of_birth=data['date_of_birth'],
-        role=data['role'],
-        status=data['status']
+        date_of_birth=date_of_birth
     )
     
     db.session.add(new_user)
@@ -236,19 +237,21 @@ def create_user():
         abort(401)  # Unauthorized
 
     data = request.get_json()
-    required_fields = ['username', 'email', 'password', 'country', 'state', 'date_of_birth', 'role', 'status']
+    required_fields = ['username', 'email', 'password', 'country', 'date_of_birth', 'role', 'status']
     if not data or not all(field in data for field in required_fields):
         abort(500)
     
-    hashed_password = generate_password_hash(data['password'], method='sha256')
+    hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
+    
+    # Convert date_of_birth to a datetime object
+    date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d')
     
     new_user = User(
         username=data['username'],
         email=data['email'],
         password=hashed_password,
         country=data['country'],
-        state=data['state'],
-        date_of_birth=data['date_of_birth'],
+        date_of_birth=date_of_birth,
         role=data['role'],
         status=data['status']
     )
@@ -270,10 +273,9 @@ def update_user(id):
 
     user.username = request.json['username']
     user.email = request.json['email']
-    user.password = generate_password_hash(request.json['password'], method='sha256')
+    user.password = generate_password_hash(request.json['password'], method='pbkdf2:sha256')
     user.country = request.json['country']
-    user.state = request.json['state']
-    user.date_of_birth = request.json['date_of_birth']
+    user.date_of_birth = datetime.strptime(request.json['date_of_birth'], '%Y-%m-%d')
     user.role = request.json['role']
     user.status = request.json['status']
     db.session.commit()
@@ -312,7 +314,6 @@ def format_user(user):
         'username': user.username,
         'email': user.email,
         'country': user.country,
-        'state': user.state,
         'date_of_birth': user.date_of_birth,
         'role': user.role,
         'status': user.status

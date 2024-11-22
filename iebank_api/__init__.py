@@ -13,6 +13,7 @@ dotenv.load_dotenv()
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)

@@ -39,6 +39,6 @@ with app.app_context():
     # db.session.commit()
 
     db.create_all()
-CORS(app)
+CORS(app, supports_credentials=True)
 
 from iebank_api import routes

@@ -79,6 +79,7 @@ def logout():
 @app.route('/user_portal', methods=['GET'])
 def user_portal():
     # Route to display the user portal with accounts and transactions
+    print(session)
     if 'user_id' not in session:
         abort(401)  # Unauthorized
 

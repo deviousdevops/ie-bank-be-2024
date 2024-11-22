@@ -90,7 +90,11 @@ def user_portal():
     accounts = Account.query.filter_by(user_id=user_id).all()
     transactions = Transaction.query.join(Account, Transaction.from_account_id == Account.id).filter(Account.user_id == user_id).all()
 
-    return render_template('user_portal.html', user=user, accounts=accounts, transactions=transactions)
+    return {
+        'user': format_user(user),
+        'accounts': [format_account(account) for account in accounts],
+        'transactions': [format_transaction(transaction) for transaction in transactions]
+    }
 
 @app.route('/admin_portal', methods=['GET'])
 def admin_portal():
@@ -99,7 +103,9 @@ def admin_portal():
         abort(401)  # Unauthorized
 
     users = User.query.all()
-    return render_template('admin_portal.html', users=users)
+    return {
+        'users': [format_user(user) for user in users]
+    }
 
 @app.route('/accounts', methods=['POST'])
 def create_account():

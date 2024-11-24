@@ -100,6 +100,7 @@ def user_portal():
 @app.route('/admin_portal', methods=['GET'])
 def admin_portal():
     # Route to display the admin portal with all users
+    print(session)
     if 'user_id' not in session or session['user_role'] != 'admin':
         abort(401)  # Unauthorized
 

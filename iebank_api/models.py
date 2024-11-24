@@ -46,13 +46,13 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username
 
-    def __init__(self, username, email, password, country, date_of_birth):
+    def __init__(self, username, email, password, country, date_of_birth, role='user'):
         self.username = username
         self.email = email
         self.password = password
         self.country = country
         self.date_of_birth = date_of_birth
-        self.role = 'user'  # Default value
+        self.role = role  # Default value
         self.status = "Active"  # Default value
         self.failed_login_attempts = 0  # Default value
 

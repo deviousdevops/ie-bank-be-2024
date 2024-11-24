@@ -1,8 +1,9 @@
-from flask import Flask, request, abort, session, render_template
+from flask import Flask, request, abort, session, jsonify, render_template
 from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+
 
 @app.route('/')
 def hello_world():
@@ -31,12 +32,12 @@ def register():
     required_fields = ['username', 'email', 'password', 'country', 'date_of_birth']
     if not data or not all(field in data for field in required_fields):
         abort(500)
-    
+
     hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
-    
+
     # Convert date_of_birth to a datetime object
     date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d')
-    
+
     new_user = User(
         username=data['username'],
         email=data['email'],
@@ -44,28 +45,32 @@ def register():
         country=data['country'],
         date_of_birth=date_of_birth
     )
-    
+
     db.session.add(new_user)
     db.session.commit()
-    
+
     return format_user(new_user)
 
 @app.route('/login', methods=['POST'])
 def login():
-    # Route to log in a user
     data = request.get_json()
     required_fields = ['username', 'password']
     if not data or not all(field in data for field in required_fields):
         abort(500)
-    
+
     user = User.query.filter_by(username=data['username']).first()
     if not user:
         abort(500)
-    
+
     if check_password_hash(user.password, data['password']):
+        session.permanent = True
         session['user_id'] = user.id
         session['user_role'] = user.role
-        return format_user(user)
+        print("Session after login:", session)  # Debug print
+        return jsonify({
+            'message': 'Login successful',
+            'user': format_user(user)
+        }), 200
     else:
         abort(500)
 
@@ -187,11 +192,11 @@ def create_transaction():
     required_fields = ['from_account_id', 'to_account_id', 'amount']
     if not data or not all(field in data for field in required_fields):
         abort(500)
-    
+
     from_account_id = data['from_account_id']
     to_account_id = data['to_account_id']
     amount = data['amount']
-    
+
     from_account = Account.query.get(from_account_id)
     to_account = Account.query.get(to_account_id)
     if not from_account or from_account.user_id != session['user_id'] or not to_account:
@@ -200,7 +205,7 @@ def create_transaction():
     transaction = Transaction(from_account_id=from_account_id, to_account_id=to_account_id, amount=amount)
     db.session.add(transaction)
     db.session.commit()
-    
+
     return format_transaction(transaction)
 
 @app.route('/transactions', methods=['GET'])
@@ -248,12 +253,12 @@ def create_user():
     required_fields = ['username', 'email', 'password', 'country', 'date_of_birth', 'role', 'status']
     if not data or not all(field in data for field in required_fields):
         abort(500)
-    
+
     hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
-    
+
     # Convert date_of_birth to a datetime object
     date_of_birth = datetime.strptime(data['date_of_birth'], '%Y-%m-%d')
-    
+
     new_user = User(
         username=data['username'],
         email=data['email'],
@@ -263,10 +268,10 @@ def create_user():
         role=data['role'],
         status=data['status']
     )
-    
+
     db.session.add(new_user)
     db.session.commit()
-    
+
     return format_user(new_user)
 
 @app.route('/admin/users/<int:id>', methods=['PUT'])

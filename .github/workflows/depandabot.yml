@@ -1,3 +1,9 @@
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+  
 version: 2
 updates:
   - package-ecosystem: "pip"

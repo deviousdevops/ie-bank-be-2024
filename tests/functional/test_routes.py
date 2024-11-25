@@ -108,14 +108,14 @@ def test_create_account(test_client, init_database, sample_user):
     # Create a new account
     response = test_client.post('/accounts', json={
         'name': 'New Account',
-        'currency': '$',
+        'currency': 'USD',
         'balance': 10.0,
         'country': 'USA'
     }, headers={'x-access-token': token})
     assert response.status_code == 200
     data = response.get_json()
     assert data['name'] == 'New Account'
-    assert data['currency'] == '$'
+    assert data['currency'] == 'USD'
     assert data['country'] == 'USA'
     assert data['balance'] == 10.0  # Assuming default balance is 0.0
 

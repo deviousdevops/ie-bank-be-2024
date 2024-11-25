@@ -1,9 +1,10 @@
-from flask import Flask, request, abort, session, jsonify, render_template
+from flask import Flask, request, abort, jsonify
 from iebank_api import db, app
 from iebank_api.models import Account, User, Transaction
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime
-
+from datetime import datetime, timedelta
+import jwt
+from functools import wraps
 
 @app.route('/')
 def hello_world():
@@ -53,60 +54,88 @@ def register():
 
 @app.route('/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    required_fields = ['username', 'password']
-    if not data or not all(field in data for field in required_fields):
-        abort(500)
+    try:
+        data = request.get_json()
+        required_fields = ['username', 'password']
+        if not data or not all(field in data for field in required_fields):
+            abort(400)  # Bad Request
 
-    user = User.query.filter_by(username=data['username']).first()
-    if not user:
-        abort(500)
+        user = User.query.filter_by(username=data['username']).first()
+        if not user:
+            abort(401)  # Unauthorized
 
-    if check_password_hash(user.password, data['password']):
-        session.permanent = True
-        session['user_id'] = user.id
-        session['user_role'] = user.role
-        print("Session after login:", session)  # Debug print
-        return jsonify({
-            'message': 'Login successful',
-            'user': format_user(user)
-        }), 200
-    else:
-        abort(500)
+        if check_password_hash(user.password, data['password']):
+            # Generate JWT token
+            token = jwt.encode({
+                'user_id': user.id,
+                'exp': datetime.utcnow() + timedelta(hours=24)
+            }, app.config['SECRET_KEY'], algorithm='HS256')
 
-@app.route('/logout', methods=['POST'])
-def logout():
-    # Route to log out a user
-    session.pop('user_id', None)
-    session.pop('user_role', None)
-    return {'message': 'Logged out successfully'}
+            return jsonify({
+                'message': 'Login successful',
+                'token': token,
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'role': user.role,
+                    'status': user.status,
+                    'country': user.country,
+                    'date_of_birth': user.date_of_birth.isoformat()
+                }
+            }), 200
+        else:
+            abort(401)  # Unauthorized
+    except Exception as e:
+        print(f"Error during login: {e}")
+        abort(500)  # Internal Server Error
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('x-access-token')  # Use .get to avoid errors if header is missing
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+
+        try:
+            # Decode the token
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = User.query.filter_by(id=data['user_id']).first()
+
+            if not current_user:
+                return jsonify({'message': 'User not found!'}), 401
+
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired!'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Token is invalid!'}), 401
+        except Exception as e:
+            print(f"Error decoding token: {e}")
+            return jsonify({'message': 'An error occurred during token validation.'}), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
 
 @app.route('/user_portal', methods=['GET'])
-def user_portal():
+@token_required
+def user_portal(current_user):
     # Route to display the user portal with accounts and transactions
-    print(session)
-    if 'user_id' not in session:
-        abort(401)  # Unauthorized
-
-    user_id = session['user_id']
-    user = User.query.get(user_id)
-    if not user:
-        abort(500)
-
-    accounts = Account.query.filter_by(user_id=user_id).all()
-    transactions = Transaction.query.join(Account, Transaction.from_account_id == Account.id).filter(Account.user_id == user_id).all()
+    accounts = Account.query.filter_by(user_id=current_user.id).all()
+    transactions = Transaction.query.join(Account, Transaction.from_account_id == Account.id).filter(Account.user_id == current_user.id).all()
 
     return {
-        'user': format_user(user),
+        'user': format_user(current_user),
         'accounts': [format_account(account) for account in accounts],
         'transactions': [format_transaction(transaction) for transaction in transactions]
     }
 
 @app.route('/admin_portal', methods=['GET'])
-def admin_portal():
+@token_required
+def admin_portal(current_user):
     # Route to display the admin portal with all users
-    print(session)
-    if 'user_id' not in session or session['user_role'] != 'admin':
+    if current_user.role != 'admin':
         abort(401)  # Unauthorized
 
     users = User.query.all()
@@ -115,138 +144,138 @@ def admin_portal():
     }
 
 @app.route('/accounts', methods=['POST'])
-def create_account():
+@token_required
+def create_account(current_user):
     # Route to create a new account
-    if 'user_id' not in session:
-        abort(401)  # Unauthorized
-
     data = request.get_json()
-    required_fields = ['name', 'currency', 'country']
+    required_fields = ['name', 'currency', 'balance', 'country']
     if not data or not all(field in data for field in required_fields):
         abort(500)  # Abort with 500 Internal Server Error if any field is missing
 
     name = data['name']
     currency = data['currency']
+    balance = data['balance']
     country = data['country']
-    user_id = session['user_id']
 
-    account = Account(name, currency, country, user_id)
+    account = Account(name=name, currency=currency, balance=balance, country=country, user_id=current_user.id)
     db.session.add(account)
     db.session.commit()
     return format_account(account)
 
 @app.route('/accounts', methods=['GET'])
-def get_accounts():
+@token_required
+def get_accounts(current_user):
     # Route to get all accounts for the logged-in user
-    if 'user_id' not in session:
-        abort(401)  # Unauthorized
-
-    user_id = session['user_id']
-    accounts = Account.query.filter_by(user_id=user_id).all()
+    accounts = Account.query.filter_by(user_id=current_user.id).all()
     return {'accounts': [format_account(account) for account in accounts]}
 
 @app.route('/accounts/<int:id>', methods=['GET'])
-def get_account(id):
+@token_required
+def get_account(current_user, id):
     # Route to get a specific account by ID
-    if 'user_id' not in session:
-        abort(401)  # Unauthorized
-
     account = Account.query.get(id)
-    if not account or account.user_id != session['user_id']:
+    if not account or account.user_id != current_user.id:
         abort(500)
     return format_account(account)
 
 @app.route('/accounts/<int:id>', methods=['PUT'])
-def update_account(id):
+@token_required
+def update_account(current_user, id):
     # Route to update a specific account by ID
-    if 'user_id' not in session:
-        abort(401)  # Unauthorized
-
     account = Account.query.get(id)
-    if not account or account.user_id != session['user_id']:
+    if not account or account.user_id != current_user.id:
         abort(500)
     account.name = request.json['name']
     db.session.commit()
     return format_account(account)
 
 @app.route('/accounts/<int:id>', methods=['DELETE'])
-def delete_account(id):
+@token_required
+def delete_account(current_user, id):
     # Route to delete a specific account by ID
-    if 'user_id' not in session:
-        abort(401)  # Unauthorized
-
     account = Account.query.get(id)
-    if not account or account.user_id != session['user_id']:
+    if not account or account.user_id != current_user.id:
         abort(500)
     db.session.delete(account)
     db.session.commit()
     return format_account(account)
 
 @app.route('/transactions', methods=['POST'])
-def create_transaction():
-    # Route to create a new transaction
-    if 'user_id' not in session:
-        abort(401)  # Unauthorized
-
+@token_required
+def create_transaction(current_user):
     data = request.get_json()
-    required_fields = ['from_account_id', 'to_account_id', 'amount']
+    app.logger.info(f"Received data: {data}")
+    required_fields = ['from_account_number', 'to_account_number', 'amount', 'currency']
     if not data or not all(field in data for field in required_fields):
-        abort(500)
+        app.logger.error("Missing required fields")
+        return jsonify({'message': 'Missing required fields'}), 400
 
-    from_account_id = data['from_account_id']
-    to_account_id = data['to_account_id']
+    from_account_number = data['from_account_number']
+    to_account_number = data['to_account_number']
     amount = data['amount']
+    transaction_currency = data['currency']
 
-    from_account = Account.query.get(from_account_id)
-    to_account = Account.query.get(to_account_id)
-    if not from_account or from_account.user_id != session['user_id'] or not to_account:
-        abort(500)
+    from_account = Account.query.filter_by(account_number=from_account_number).first()
+    to_account = Account.query.filter_by(account_number=to_account_number).first()
+    if not from_account or from_account.user_id != current_user.id or not to_account:
+        app.logger.error("Invalid account details")
+        return jsonify({'message': 'Invalid account details'}), 400
 
-    transaction = Transaction(from_account_id=from_account_id, to_account_id=to_account_id, amount=amount)
+    # Handle currency conversion
+    if from_account.currency != transaction_currency:
+        if from_account.currency == '$' and transaction_currency == '€':
+            converted_amount = amount / 0.95  # Convert EUR to USD
+        elif from_account.currency == '€' and transaction_currency == '$':
+            converted_amount = amount * 0.95  # Convert USD to EUR
+        else:
+            app.logger.error("Unsupported currency conversion")
+            return jsonify({'message': 'Unsupported currency conversion!'}), 400
+    else:
+        converted_amount = amount
+
+    if from_account.balance < converted_amount:
+        app.logger.error("Insufficient funds")
+        return jsonify({'message': 'Insufficient funds!'}), 400
+
+    # Update account balances
+    from_account.balance -= converted_amount
+    if to_account.currency != transaction_currency:
+        if transaction_currency == '$' and to_account.currency == '€':
+            received_amount = amount * 0.95  # Convert USD to EUR
+        elif transaction_currency == '€' and to_account.currency == '$':
+            received_amount = amount / 0.95  # Convert EUR to USD
+        else:
+            app.logger.error("Unsupported currency conversion")
+            return jsonify({'message': 'Unsupported currency conversion!'}), 400
+    else:
+        received_amount = amount
+
+    to_account.balance += received_amount
+
+    # Create the transaction
+    transaction = Transaction(from_account_id=from_account.id, to_account_id=to_account.id, amount=amount, currency=transaction_currency)
     db.session.add(transaction)
     db.session.commit()
 
-    return format_transaction(transaction)
+    app.logger.info("Transaction successful")
+    return jsonify({
+        'transaction': format_transaction(transaction),
+        'message': 'Transaction successful!'
+    })
 
 @app.route('/transactions', methods=['GET'])
-def get_transactions():
+@token_required
+def get_transactions(current_user):
     # Route to get all transactions for the logged-in user
-    if 'user_id' not in session:
-        abort(401)  # Unauthorized
-
-    user_id = session['user_id']
-    transactions = Transaction.query.join(Account, Transaction.from_account_id == Account.id).filter(Account.user_id == user_id).all()
+    transactions = Transaction.query.join(Account, Transaction.from_account_id == Account.id).filter(Account.user_id == current_user.id).all()
     return {'transactions': [format_transaction(transaction) for transaction in transactions]}
 
-@app.route('/send_money', methods=['POST'])
-def send_money():
-    # Route to send money from one account to another
-    if 'user_id' not in session:
-        abort(401)  # Unauthorized
-
-    data = request.get_json()
-    required_fields = ['from_account_id', 'to_account_id', 'amount']
-    if not data or not all(field in data for field in required_fields):
-        abort(500)
-
-    from_account = Account.query.get(data['from_account_id'])
-    to_account = Account.query.get(data['to_account_id'])
-    amount = data['amount']
-
-    if not from_account or not to_account or from_account.user_id != session['user_id'] or from_account.balance < amount:
-        abort(500)
-
-    from_account.balance -= amount
-    to_account.balance += amount
-
-    db.session.commit()
-
-    return {'message': 'Transaction successful'}
 
 @app.route('/admin/users', methods=['POST'])
-def create_user():
+@token_required
+def create_user(current_user):
     # Route for admin to create a new user
-    if 'user_id' not in session or session['user_role'] != 'admin':
+    if current_user.role != 'admin':
         abort(401)  # Unauthorized
 
     data = request.get_json()
@@ -275,9 +304,10 @@ def create_user():
     return format_user(new_user)
 
 @app.route('/admin/users/<int:id>', methods=['PUT'])
-def update_user(id):
+@token_required
+def update_user(current_user, id):
     # Route for admin to update a user by ID
-    if 'user_id' not in session or session['user_role'] != 'admin':
+    if current_user.role != 'admin':
         abort(401)  # Unauthorized
 
     user = User.query.get(id)
@@ -295,9 +325,10 @@ def update_user(id):
     return format_user(user)
 
 @app.route('/admin/users/<int:id>', methods=['DELETE'])
-def delete_user(id):
+@token_required
+def delete_user(current_user, id):
     # Route for admin to delete a user by ID
-    if 'user_id' not in session or session['user_role'] != 'admin':
+    if current_user.role != 'admin':
         abort(401)  # Unauthorized
 
     user = User.query.get(id)

@@ -23,7 +23,7 @@ else:
     CORS(app, supports_credentials=True, resources={
         r"/*": {
             "origins": "http://localhost:8080",
-            "allow_headers": ["Content-Type"],
+            "allow_headers": ["Content-Type", "Authorization", "x-access-token"],  # Allow x-access-token header
             "expose_headers": ["Access-Control-Allow-Origin"],
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
         }

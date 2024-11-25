@@ -19,11 +19,11 @@ class Account(db.Model):
     def __repr__(self):
         return '<Account %r>' % self.account_number
 
-    def __init__(self, name, currency, country, user_id):
+    def __init__(self, name, currency, country, user_id, balance=0.0):
         self.name = name
         self.account_number = ''.join(random.choices(string.digits, k=20))
         self.currency = currency
-        self.balance = 0.0
+        self.balance = balance
         self.status = "Active"
         self.country = country
         self.user_id = user_id
@@ -61,7 +61,8 @@ class Transaction(db.Model):
     from_account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     to_account_id = db.Column(db.Integer, db.ForeignKey('account.id'), nullable=False)
     amount = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(10), nullable=False, default="Pending")
+    currency = db.Column(db.String(3), nullable=False, default="EUR")  # Add currency attribute
+    status = db.Column(db.String(10), nullable=False, default="Completed")
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     from_account = db.relationship('Account', foreign_keys=[from_account_id], back_populates='transactions_from')
     to_account = db.relationship('Account', foreign_keys=[to_account_id], back_populates='transactions_to')
@@ -69,8 +70,8 @@ class Transaction(db.Model):
     def __repr__(self):
         return '<Transaction %r>' % self.id
 
-    def __init__(self, from_account_id, to_account_id, amount):
+    def __init__(self, from_account_id, to_account_id, amount, currency="€"):  # Add currency parameter
         self.from_account_id = from_account_id
         self.to_account_id = to_account_id
         self.amount = amount
-        self.status = "Pending"
+        self.currency = currency  # Initialize currency

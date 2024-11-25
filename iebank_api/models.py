@@ -46,15 +46,15 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % self.username
 
-    def __init__(self, username, email, password, country, date_of_birth, role='user'):
+    def __init__(self, username, email, password, country, date_of_birth, role='user', status='Active', failed_login_attempts=0):
         self.username = username
         self.email = email
         self.password = password
         self.country = country
         self.date_of_birth = date_of_birth
         self.role = role  # Default value
-        self.status = "Active"  # Default value
-        self.failed_login_attempts = 0  # Default value
+        self.status = status  # Default value
+        self.failed_login_attempts = failed_login_attempts  # Default value
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)

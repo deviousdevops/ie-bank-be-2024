@@ -14,7 +14,7 @@ env:
   BACKEND_WEBAPP_DEV: devious-be-dev
   BACKEND_WEBAPP_UAT: devious-be-uat
   ACR_NAME: deviousacrdev
-  IMAGE_NAME: backend:latest
+  IMAGE_NAME: backend
 
 jobs:
   build:
@@ -74,15 +74,15 @@ jobs:
         # Get current date in YYYYMMDD format
         DATE_TAG=$(date +'%Y%m%d')
 
-        # Build the image
-        docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${DATE_TAG}
+        # Build and tag the image
+        docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}
+        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }} ${{ env.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
+        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }} ${{ env.ACR_NAME }}.azurecr.io/backend:${DATE_TAG}
 
         # Push all tags
-        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${DATE_TAG}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/backend:${DATE_TAG}
 
   deploy-dev:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'

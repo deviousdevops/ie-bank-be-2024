@@ -11,8 +11,8 @@ permissions:
   id-token: write
 
 env:
-  BACKEND_WEBAPP_DEV: zalsaheb-be-dev
-  BACKEND_WEBAPP_UAT: zalsaheb-be-uat
+  BACKEND_WEBAPP_DEV: devious-be-dev
+  BACKEND_WEBAPP_UAT: devious-be-uat
 
 jobs:
   build:

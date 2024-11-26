@@ -66,10 +66,10 @@ def test_register(test_client, init_database):
 def test_login_user(test_client, init_database, sample_user):
     """Test logging in a user."""
     response = test_client.post('/login',
-        json={
-            "username": "testuser",
-            "password": "test1234"
-        },
+        data=json.dumps({
+            "username": str("testuser"),
+            "password": str("test1234")
+        }),
         content_type='application/json'
     )
     assert response.status_code == 200

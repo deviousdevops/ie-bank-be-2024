@@ -9,3 +9,4 @@ pytest-cov
 Flask-Migrate
 Werkzeug
 opencensus-ext-azure
+pysqlite3

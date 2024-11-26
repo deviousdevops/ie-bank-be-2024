@@ -103,12 +103,11 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 'Deploy to Azure Container Apps Development'
-      uses: azure/container-apps-deploy-action@v1
+    - name: 'Deploy to Azure Web App Development'
+      uses: azure/webapps-deploy@v3
       with:
-        containerAppName: ${{ env.BACKEND_WEBAPP_DEV }}
-        resourceGroup: BCSAI2024-DEVOPS-STUDENTS-A-DEV
-        imageToDeploy: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        app-name: ${{ env.BACKEND_WEBAPP_DEV }}
+        images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
   deploy-uat:
     if: github.event.pull_request.base.ref == 'main' || github.event_name == 'workflow_dispatch'
@@ -129,9 +128,8 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 'Deploy to Azure Container Apps UAT'
-      uses: azure/container-apps-deploy-action@v1
+    - name: 'Deploy to Azure Web App UAT'
+      uses: azure/webapps-deploy@v3
       with:
-        containerAppName: ${{ env.BACKEND_WEBAPP_UAT }}
-        resourceGroup: your-resource-group-name
-        imageToDeploy: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        app-name: ${{ env.BACKEND_WEBAPP_UAT }}
+        images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}

@@ -7,14 +7,13 @@ from werkzeug.security import generate_password_hash
 
 @pytest.fixture(scope='module')
 def test_client():
-    from iebank_api import create_app
-    flask_app = create_app()
-    testing_client = flask_app.test_client()
+    from iebank_api import app
+    testing_client = app.test_client()
 
-    ctx = flask_app.app_context()
+    ctx = app.app_context()
     ctx.push()
 
-    yield testing_client  # this is where the testing happens!
+    yield testing_client
 
     ctx.pop()
 
@@ -73,7 +72,7 @@ def test_login_user(test_client, init_database, sample_user):
     assert 'user' in data
     assert data['user']['username'] == 'testuser'
     assert data['user']['email'] == 'test@example.com'
-    
+
 
 def test_user_portal(test_client, init_database, sample_user):
     """Test accessing the user portal."""

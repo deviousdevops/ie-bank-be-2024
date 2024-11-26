@@ -223,9 +223,9 @@ def create_transaction(current_user):
 
     # Handle currency conversion
     if from_account.currency != transaction_currency:
-        if from_account.currency == '$' and transaction_currency == '€':
+        if from_account.currency == 'USD' and transaction_currency == 'EUR':
             converted_amount = amount / 0.95  # Convert EUR to USD
-        elif from_account.currency == '€' and transaction_currency == '$':
+        elif from_account.currency == 'EUR' and transaction_currency == 'USD':
             converted_amount = amount * 0.95  # Convert USD to EUR
         else:
             app.logger.error("Unsupported currency conversion")
@@ -240,9 +240,9 @@ def create_transaction(current_user):
     # Update account balances
     from_account.balance -= converted_amount
     if to_account.currency != transaction_currency:
-        if transaction_currency == '$' and to_account.currency == '€':
+        if transaction_currency == 'USD' and to_account.currency == 'EUR':
             received_amount = amount * 0.95  # Convert USD to EUR
-        elif transaction_currency == '€' and to_account.currency == '$':
+        elif transaction_currency == 'EUR' and to_account.currency == 'USD':
             received_amount = amount / 0.95  # Convert EUR to USD
         else:
             app.logger.error("Unsupported currency conversion")

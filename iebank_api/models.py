@@ -70,7 +70,7 @@ class Transaction(db.Model):
     def __repr__(self):
         return '<Transaction %r>' % self.id
 
-    def __init__(self, from_account_id, to_account_id, amount, currency="€"):  # Add currency parameter
+    def __init__(self, from_account_id, to_account_id, amount, currency="EUR"):  # Add currency parameter
         self.from_account_id = from_account_id
         self.to_account_id = to_account_id
         self.amount = amount

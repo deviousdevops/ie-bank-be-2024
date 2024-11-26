@@ -5,6 +5,47 @@ import json
 from iebank_api import db
 from werkzeug.security import generate_password_hash
 
+@pytest.fixture(scope='module')
+def test_client():
+    from iebank_api import create_app
+    flask_app = create_app()
+    testing_client = flask_app.test_client()
+
+    ctx = flask_app.app_context()
+    ctx.push()
+
+    yield testing_client  # this is where the testing happens!
+
+    ctx.pop()
+
+@pytest.fixture(scope='module')
+def init_database():
+    # Create the database and the database table
+    db.create_all()
+
+    # Insert user data
+    user1 = User(username='testuser', email='test@example.com', password=generate_password_hash('test1234'), country='USA', date_of_birth=datetime.strptime('1990-01-01', '%Y-%m-%d'), role='user', status='active')
+    user2 = User(username='admin', email='admin@example.com', password=generate_password_hash('adminpass'), country='USA', date_of_birth=datetime.strptime('1980-01-01', '%Y-%m-%d'), role='admin', status='active')
+    db.session.add(user1)
+    db.session.add(user2)
+
+    # Commit the changes for the users
+    db.session.commit()
+
+    yield db  # this is where the testing happens!
+
+    db.drop_all()
+
+@pytest.fixture
+def sample_user(init_database):
+    user = User.query.filter_by(username='testuser').first()
+    return user
+
+@pytest.fixture
+def admin_user(init_database):
+    user = User.query.filter_by(username='admin').first()
+    return user
+
 def test_register(test_client, init_database):
     """ Test registration of a new user """
     response = test_client.post('/register', json={
@@ -47,8 +88,8 @@ def test_user_portal(test_client, init_database, sample_user):
 
     # Create accounts and transactions for the user
     user = User.query.filter_by(username='testuser').first()
-    account1 = Account(name='Account 1', balance=1000.0, currency='USD', country = 'Spain', user_id=user.id)
-    account2 = Account(name='Account 2', balance=2000.0, currency='USD', country = 'Spain', user_id=user.id)
+    account1 = Account(name='Account 1', balance=1000.0, currency='USD', country='Spain', user_id=user.id)
+    account2 = Account(name='Account 2', balance=2000.0, currency='USD', country='Spain', user_id=user.id)
     db.session.add(account1)
     db.session.add(account2)
     db.session.commit()
@@ -248,7 +289,6 @@ def test_get_transactions(test_client, init_database, sample_user):
     response = test_client.get('/transactions', headers={'x-access-token': token})
     assert response.status_code == 200
     data = response.get_json()
-    assert 'transactions' in data
     assert 'transactions' in data
     assert len(data['transactions']) == 2
 

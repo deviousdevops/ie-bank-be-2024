@@ -47,13 +47,16 @@ def admin_user(init_database):
 
 def test_register(test_client, init_database):
     """ Test registration of a new user """
-    response = test_client.post('/register', json={
-        'username': 'newuser',
-        'email': 'newuser@example.com',
-        'password': 'newpass123',
-        'country': 'Newland',
-        'date_of_birth': '1995-05-05'
-    })
+    response = test_client.post('/register',
+        json={
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password': 'newpass123',
+            'country': 'Newland',
+            'date_of_birth': '1995-05-05'
+        },
+        content_type='application/json'
+    )
     assert response.status_code == 200
     data = json.loads(response.data)
     assert data['username'] == 'newuser'
@@ -62,10 +65,13 @@ def test_register(test_client, init_database):
 
 def test_login_user(test_client, init_database, sample_user):
     """Test logging in a user."""
-    response = test_client.post('/login', json={
-        'username': 'testuser',
-        'password': 'test1234'
-    })
+    response = test_client.post('/login',
+        json={
+            "username": "testuser",
+            "password": "test1234"
+        },
+        content_type='application/json'
+    )
     assert response.status_code == 200
     data = response.get_json()
     assert 'token' in data
@@ -76,11 +82,13 @@ def test_login_user(test_client, init_database, sample_user):
 
 def test_user_portal(test_client, init_database, sample_user):
     """Test accessing the user portal."""
-    # Log in the user first
-    response = test_client.post('/login', json={
-        'username': 'testuser',
-        'password': 'test1234'
-    })
+    response = test_client.post('/login',
+        json={
+            'username': 'testuser',
+            'password': 'test1234'
+        },
+        content_type='application/json'
+    )
     assert response.status_code == 200
     login_data = response.get_json()
     token = login_data['token']
@@ -115,11 +123,13 @@ def test_user_portal(test_client, init_database, sample_user):
 
 def test_admin_portal(test_client, init_database, admin_user):
     """Test accessing the admin portal."""
-    # Log in the admin user first
-    response = test_client.post('/login', json={
-        'username': 'admin',
-        'password': 'adminpass'
-    })
+    response = test_client.post('/login',
+        json={
+            'username': 'admin',
+            'password': 'adminpass'
+        },
+        content_type='application/json'
+    )
     assert response.status_code == 200
     login_data = response.get_json()
     token = login_data['token']
@@ -136,22 +146,28 @@ def test_admin_portal(test_client, init_database, admin_user):
 
 def test_create_account(test_client, init_database, sample_user):
     """Test creating a new account."""
-    # Log in the user first
-    response = test_client.post('/login', json={
-        'username': 'testuser',
-        'password': 'test1234'
-    })
+    response = test_client.post('/login',
+        json={
+            'username': 'testuser',
+            'password': 'test1234'
+        },
+        content_type='application/json'
+    )
     assert response.status_code == 200
     login_data = response.get_json()
     token = login_data['token']
 
     # Create a new account
-    response = test_client.post('/accounts', json={
-        'name': 'New Account',
-        'currency': 'USD',
-        'balance': 10.0,
-        'country': 'USA'
-    }, headers={'x-access-token': token})
+    response = test_client.post('/accounts',
+        json={
+            'name': 'New Account',
+            'currency': 'USD',
+            'balance': 10.0,
+            'country': 'USA'
+        },
+        headers={'x-access-token': token},
+        content_type='application/json'
+    )
     assert response.status_code == 200
     data = response.get_json()
     assert data['name'] == 'New Account'
@@ -231,11 +247,13 @@ def test_delete_account(test_client, init_database, sample_user):
 
 def test_create_transaction(test_client, init_database, sample_user):
     """Test creating a new transaction."""
-    # Log in the user first
-    response = test_client.post('/login', json={
-        'username': 'testuser',
-        'password': 'test1234'
-    })
+    response = test_client.post('/login',
+        json={
+            'username': 'testuser',
+            'password': 'test1234'
+        },
+        content_type='application/json'
+    )
     assert response.status_code == 200
     login_data = response.get_json()
     token = login_data['token']
@@ -248,12 +266,16 @@ def test_create_transaction(test_client, init_database, sample_user):
     db.session.commit()
 
     # Create a transaction
-    response = test_client.post('/transactions', json={
-        'from_account_number': account1.account_number,
-        'to_account_number': account2.account_number,
-        'amount': 100.0,
-        'currency': 'USD'
-    }, headers={'x-access-token': token})
+    response = test_client.post('/transactions',
+        json={
+            'from_account_number': account1.account_number,
+            'to_account_number': account2.account_number,
+            'amount': 100.0,
+            'currency': 'USD'
+        },
+        headers={'x-access-token': token},
+        content_type='application/json'
+    )
     assert response.status_code == 200
     data = response.get_json()
     assert data['transaction']['amount'] == 100.0
@@ -293,25 +315,31 @@ def test_get_transactions(test_client, init_database, sample_user):
 
 def test_create_user(test_client, init_database, admin_user):
     """Test creating a new user by admin."""
-    # Log in the admin user first
-    response = test_client.post('/login', json={
-        'username': 'admin',
-        'password': 'adminpass'
-    })
+    response = test_client.post('/login',
+        json={
+            'username': 'admin',
+            'password': 'adminpass'
+        },
+        content_type='application/json'
+    )
     assert response.status_code == 200
     login_data = response.get_json()
     token = login_data['token']
 
     # Create a new user
-    response = test_client.post('/admin/users', json={
-        'username': 'newuser',
-        'email': 'newuser@example.com',
-        'password': 'password123',
-        'country': 'USA',
-        'date_of_birth': '1990-01-01',
-        'role': 'user',
-        'status': 'active'
-    }, headers={'x-access-token': token})
+    response = test_client.post('/admin/users',
+        json={
+            'username': 'newuser',
+            'email': 'newuser@example.com',
+            'password': 'password123',
+            'country': 'USA',
+            'date_of_birth': '1990-01-01',
+            'role': 'user',
+            'status': 'active'
+        },
+        headers={'x-access-token': token},
+        content_type='application/json'
+    )
     assert response.status_code == 200
     data = response.get_json()
     assert data['username'] == 'newuser'
@@ -320,11 +348,13 @@ def test_create_user(test_client, init_database, admin_user):
 
 def test_update_user(test_client, init_database, admin_user):
     """Test updating a user by admin."""
-    # Log in the admin user first
-    response = test_client.post('/login', json={
-        'username': 'admin',
-        'password': 'adminpass'
-    })
+    response = test_client.post('/login',
+        json={
+            'username': 'admin',
+            'password': 'adminpass'
+        },
+        content_type='application/json'
+    )
     assert response.status_code == 200
     login_data = response.get_json()
     token = login_data['token']
@@ -343,15 +373,19 @@ def test_update_user(test_client, init_database, admin_user):
     db.session.commit()
 
     # Update the user
-    response = test_client.put(f'/admin/users/{user.id}', json={
-        'username': 'updateduser',
-        'email': 'updateduser@example.com',
-        'password': 'newpassword123',
-        'country': 'USA',
-        'date_of_birth': '1990-01-01',
-        'role': 'user',
-        'status': 'active'
-    }, headers={'x-access-token': token})
+    response = test_client.put(f'/admin/users/{user.id}',
+        json={
+            'username': 'updateduser',
+            'email': 'updateduser@example.com',
+            'password': 'newpassword123',
+            'country': 'USA',
+            'date_of_birth': '1990-01-01',
+            'role': 'user',
+            'status': 'active'
+        },
+        headers={'x-access-token': token},
+        content_type='application/json'
+    )
     assert response.status_code == 200
     data = response.get_json()
     assert data['username'] == 'updateduser'

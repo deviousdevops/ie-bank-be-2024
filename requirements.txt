@@ -6,3 +6,6 @@ psycopg2-binary
 python-dotenv==0.21.0
 pytest
 pytest-cov
+Flask-Migrate
+Werkzeug
+opencensus-ext-azure

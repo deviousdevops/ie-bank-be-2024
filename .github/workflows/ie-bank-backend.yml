@@ -13,6 +13,8 @@ permissions:
 env:
   BACKEND_WEBAPP_DEV: devious-be-dev
   BACKEND_WEBAPP_UAT: devious-be-uat
+  ACR_NAME: deviousacrdev
+  IMAGE_NAME: backend:latest
 
 jobs:
   build:
@@ -49,6 +51,38 @@ jobs:
         name: python-app
         path: |
           .
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Get ACR credentials from Key Vault'
+      uses: azure/get-keyvault-secrets@v1
+      with:
+        keyvault: "devious-kv-dev"  # Name of your key vault
+        secrets: 'registry-username, registry-password'  # Names of your secrets in Key Vault
+      id: keyvaultSecrets
+
+    - name: 'Build and push image'
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.ACR_NAME }}.azurecr.io
+        username: ${{ steps.keyvaultSecrets.outputs.acr-username }}
+        password: ${{ steps.keyvaultSecrets.outputs.acr-password }}
+
+    - name: Build and push container image
+      run: |
+        # Get current date in YYYYMMDD format
+        DATE_TAG=$(date +'%Y%m%d')
+
+        # Build the image
+        docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${DATE_TAG}
+
+        # Push all tags
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${DATE_TAG}
 
   deploy-dev:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -69,12 +103,12 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 'Deploy to Azure Web App Development'
-      uses: azure/webapps-deploy@v3
-      id: deploy-to-webapp
+    - name: 'Deploy to Azure Container Apps Development'
+      uses: azure/container-apps-deploy-action@v1
       with:
-        app-name: ${{ env.BACKEND_WEBAPP_DEV }}
-        package: .
+        containerAppName: ${{ env.BACKEND_WEBAPP_DEV }}
+        resourceGroup: BCSAI2024-DEVOPS-STUDENTS-A-DEV
+        imageToDeploy: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
   deploy-uat:
     if: github.event.pull_request.base.ref == 'main' || github.event_name == 'workflow_dispatch'
@@ -95,9 +129,9 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 'Deploy to Azure Web App UAT'
-      uses: azure/webapps-deploy@v3
-      id: deploy-to-webapp
+    - name: 'Deploy to Azure Container Apps UAT'
+      uses: azure/container-apps-deploy-action@v1
       with:
-        app-name: ${{ env.BACKEND_WEBAPP_UAT }}
-        package: .
+        containerAppName: ${{ env.BACKEND_WEBAPP_UAT }}
+        resourceGroup: your-resource-group-name
+        imageToDeploy: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}

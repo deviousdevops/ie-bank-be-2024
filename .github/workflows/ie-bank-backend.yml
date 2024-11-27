@@ -104,7 +104,7 @@ jobs:
       with:
         app-name: ${{ env.BACKEND_WEBAPP_DEV }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-        startup-command: 'bash -c "flask db upgrade && python3 -m flask run --host=0.0.0.0"'
+        startup-command: python3 -m flask run --host=0.0.0.0
 
   deploy-uat:
     if: github.event.pull_request.base.ref == 'main' || github.event_name == 'workflow_dispatch'
@@ -131,4 +131,4 @@ jobs:
       with:
         app-name: ${{ env.BACKEND_WEBAPP_UAT }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-        startup-command: 'bash -c "flask db upgrade && python3 -m flask run --host=0.0.0.0"'
+        startup-command: python3 -m flask run --host=0.0.0.0

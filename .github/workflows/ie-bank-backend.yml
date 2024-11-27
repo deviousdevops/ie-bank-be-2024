@@ -109,6 +109,7 @@ jobs:
       with:
         app-name: ${{ env.BACKEND_WEBAPP_DEV }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+        startup-command: 'gunicorn --bind 0.0.0.0:5000 app:app'
 
   deploy-uat:
     if: github.event.pull_request.base.ref == 'main' || github.event_name == 'workflow_dispatch'
@@ -135,3 +136,4 @@ jobs:
       with:
         app-name: ${{ env.BACKEND_WEBAPP_UAT }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        startup-command: 'gunicorn --bind 0.0.0.0:5000 app:app'

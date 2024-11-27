@@ -10,3 +10,4 @@ Flask-Migrate
 Werkzeug
 opencensus-ext-azure
 pysqlite3
+gunicorn

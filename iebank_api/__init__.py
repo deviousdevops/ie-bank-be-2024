@@ -7,14 +7,18 @@ from opencensus.ext.azure.log_exporter import AzureLogHandler
 import logging
 from datetime import timedelta
 
+print("Initializing app")
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 
+print("App initialized")
 app.permanent_session_lifetime = timedelta(days=1)  # Set session lifetime
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+print("Database initialized")
 
 # Configure CORS to allow credentials and specify allowed origins for production
 if os.getenv('ENV') == 'production':
@@ -30,17 +34,17 @@ else:
         }
     })
 
-
-# # Select environment based on the ENV environment variable
-# if os.getenv('ENV') == 'local':
-#     print("Running in local mode")
-#     app.config.from_object('config.LocalConfig')
-# elif os.getenv('ENV') == 'dev':
-#     print("Running in development mode")
-#     app.config.from_object('config.DevelopmentConfig')
-# elif os.getenv('ENV') == 'ghci':
-#     print("Running in github mode")
-#     app.config.from_object('config.GithubCIConfig')
+print("CORS initialized")
+# Select environment based on the ENV environment variable
+if os.getenv('ENV') == 'local':
+    print("Running in local mode")
+    app.config.from_object('config.LocalConfig')
+elif os.getenv('ENV') == 'dev':
+    print("Running in development mode")
+    app.config.from_object('config.DevelopmentConfig')
+elif os.getenv('ENV') == 'ghci':
+    print("Running in github mode")
+    app.config.from_object('config.GithubCIConfig')
 
 
 # Configure Azure Application Insights

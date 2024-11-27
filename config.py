@@ -1,6 +1,6 @@
 import os
 
-class Config(object): 
+class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = False
 

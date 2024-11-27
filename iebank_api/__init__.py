@@ -10,6 +10,7 @@ from datetime import timedelta
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+
 app.permanent_session_lifetime = timedelta(days=1)  # Set session lifetime
 
 db = SQLAlchemy(app)
@@ -29,16 +30,18 @@ else:
         }
     })
 
-# Select environment based on the ENV environment variable
-if os.getenv('ENV') == 'local':
-    print("Running in local mode")
-    app.config.from_object('config.LocalConfig')
-elif os.getenv('ENV') == 'dev':
-    print("Running in development mode")
-    app.config.from_object('config.DevelopmentConfig')
-elif os.getenv('ENV') == 'ghci':
-    print("Running in github mode")
-    app.config.from_object('config.GithubCIConfig')
+
+# # Select environment based on the ENV environment variable
+# if os.getenv('ENV') == 'local':
+#     print("Running in local mode")
+#     app.config.from_object('config.LocalConfig')
+# elif os.getenv('ENV') == 'dev':
+#     print("Running in development mode")
+#     app.config.from_object('config.DevelopmentConfig')
+# elif os.getenv('ENV') == 'ghci':
+#     print("Running in github mode")
+#     app.config.from_object('config.GithubCIConfig')
+
 
 # Configure Azure Application Insights
 app.config['APPINSIGHTS_INSTRUMENTATIONKEY'] = os.environ.get('APPINSIGHTS_INSTRUMENTATIONKEY')
@@ -53,11 +56,6 @@ if app.config['APPINSIGHTS_INSTRUMENTATIONKEY']:
 from iebank_api.models import Account, User, Transaction
 
 with app.app_context():
-    # Uncomment to add the country column to the account table
-    # query = text("ALTER TABLE account ADD COLUMN country VARCHAR(32)")
-    # db.session.execute(query)
-    # db.session.commit()
-
     db.create_all()
 
 from iebank_api import routes

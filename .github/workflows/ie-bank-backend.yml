@@ -71,18 +71,13 @@ jobs:
 
     - name: Build and push container image
       run: |
-        # Get current date in YYYYMMDD format
-        DATE_TAG=$(date +'%Y%m%d')
-
         # Build and tag the image
         docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}
         docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }} ${{ env.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
-        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }} ${{ env.ACR_NAME }}.azurecr.io/backend:${DATE_TAG}
 
         # Push all tags
         docker push ${{ env.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
         docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}
-        docker push ${{ env.ACR_NAME }}.azurecr.io/backend:${DATE_TAG}
 
   deploy-dev:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -109,7 +104,7 @@ jobs:
       with:
         app-name: ${{ env.BACKEND_WEBAPP_DEV }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-        startup-command: 'gunicorn --bind 0.0.0.0:5000 app:app'
+        startup-command: 'bash -c "flask db upgrade && python3 -m flask run --host=0.0.0.0"'
 
   deploy-uat:
     if: github.event.pull_request.base.ref == 'main' || github.event_name == 'workflow_dispatch'
@@ -135,5 +130,5 @@ jobs:
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ env.BACKEND_WEBAPP_UAT }}
-        images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        startup-command: 'gunicorn --bind 0.0.0.0:5000 app:app'
+        images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+        startup-command: 'bash -c "flask db upgrade && python3 -m flask run --host=0.0.0.0"'

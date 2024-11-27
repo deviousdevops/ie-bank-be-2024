@@ -58,8 +58,8 @@ jobs:
     - name: 'Get ACR credentials from Key Vault'
       uses: azure/get-keyvault-secrets@v1
       with:
-        keyvault: "devious-kv2-dev"  # Name of your key vault
-        secrets: 'registry-username, registry-password'  # Names of your secrets in Key Vault
+        keyvault: "devious-kv2-dev"
+        secrets: 'registry-username, registry-password'
       id: keyvaultSecrets
 
     - name: 'Build and push image'
@@ -104,7 +104,7 @@ jobs:
       with:
         app-name: ${{ env.BACKEND_WEBAPP_DEV }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-        startup-command: python3 -m flask run --host=0.0.0.0
+        startup-command: python3 -m flask run --host=0.0.0.0 --port=8000
 
   deploy-uat:
     if: github.event.pull_request.base.ref == 'main' || github.event_name == 'workflow_dispatch'
@@ -131,4 +131,4 @@ jobs:
       with:
         app-name: ${{ env.BACKEND_WEBAPP_UAT }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-        startup-command: python3 -m flask run --host=0.0.0.0
+        startup-command: python3 -m flask run --host=0.0.0.0 --port=8000

@@ -1,7 +1,5 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11
-ENV SECRET_KEY='secret'
-ENV PORT=8000
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt

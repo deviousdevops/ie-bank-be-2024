@@ -58,7 +58,7 @@ jobs:
     - name: 'Get ACR credentials from Key Vault'
       uses: azure/get-keyvault-secrets@v1
       with:
-        keyvault: "devious-kv3-dev"
+        keyvault: "devious-kv4-dev"
         secrets: 'registry-username, registry-password'
       id: keyvaultSecrets
 
@@ -131,4 +131,4 @@ jobs:
       with:
         app-name: ${{ env.BACKEND_WEBAPP_UAT }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-        startup-command: gunicorn --bind 0.0.0.0:8000 iebank_api:app
+        startup-command: flask run --host=0.0.0.0 --port=8000

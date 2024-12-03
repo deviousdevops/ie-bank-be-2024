@@ -26,10 +26,10 @@ CORS(app, supports_credentials=True, resources={
 })
 
 # Select environment based on the ENV environment variable
-env = os.getenv('ENV', 'local')
+env = os.getenv('ENV')
 if env == 'local':
     app.config.from_object('config.LocalConfig')
-elif env == 'dev':
+elif env == 'development':
     app.config.from_object('config.DevelopmentConfig')
 elif env == 'ghci':
     app.config.from_object('config.GithubCIConfig')

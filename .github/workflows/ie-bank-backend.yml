@@ -104,7 +104,7 @@ jobs:
       with:
         app-name: ${{ env.BACKEND_WEBAPP_DEV }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-        startup-command: gunicorn --bind 0.0.0.0:8000 iebank_api:app
+        startup-command: flask run --host=0.0.0.0 --port=8000
 
   deploy-uat:
     if: github.event.pull_request.base.ref == 'main' || github.event_name == 'workflow_dispatch'

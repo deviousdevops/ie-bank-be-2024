@@ -8,6 +8,7 @@ import logging
 from datetime import timedelta
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///local.db')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 app.permanent_session_lifetime = timedelta(days=1)
 

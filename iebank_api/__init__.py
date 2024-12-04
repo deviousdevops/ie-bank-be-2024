@@ -16,14 +16,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # Configure CORS
-CORS(app, supports_credentials=True, resources={
-    r"/*": {
-        "origins": os.environ.get('CORS_ORIGINS', 'http://localhost:8080').split(','),
-        "allow_headers": ["Content-Type", "Authorization", "x-access-token"],
-        "expose_headers": ["Access-Control-Allow-Origin"],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-    }
-})
+CORS(app, supports_credentials=True)
 
 # Select environment based on the ENV environment variable
 env = os.getenv('ENV')

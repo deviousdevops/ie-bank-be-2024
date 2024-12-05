@@ -9,7 +9,6 @@ from datetime import timedelta
 from create_admin import create_admin_user
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///local.db')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 app.permanent_session_lifetime = timedelta(days=1)
 
@@ -17,7 +16,14 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # Configure CORS
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True, resources={
+    r"/*": {
+        "origins": os.environ.get('CORS_ORIGINS', 'http://localhost:8080').split(','),
+        "allow_headers": ["Content-Type", "Authorization", "x-access-token"],
+        "expose_headers": ["Access-Control-Allow-Origin"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    }
+})
 
 # Select environment based on the ENV environment variable
 env = os.getenv('ENV')

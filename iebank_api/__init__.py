@@ -6,6 +6,7 @@ import os
 from opencensus.ext.azure.log_exporter import AzureLogHandler
 import logging
 from datetime import timedelta
+from create_admin import create_admin_user
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
@@ -47,5 +48,6 @@ from iebank_api.models import Account, User, Transaction
 
 with app.app_context():
     db.create_all()
+    create_admin_user(app, db)
 
 from iebank_api import routes

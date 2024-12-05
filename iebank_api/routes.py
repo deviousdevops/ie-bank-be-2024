@@ -316,7 +316,8 @@ def update_user(current_user, id):
 
     user.username = request.json['username']
     user.email = request.json['email']
-    user.password = generate_password_hash(request.json['password'], method='pbkdf2:sha256')
+    if 'password' in request.json and request.json['password']:
+        user.password = generate_password_hash(request.json['password'], method='pbkdf2:sha256')
     user.country = request.json['country']
     user.date_of_birth = datetime.strptime(request.json['date_of_birth'], '%Y-%m-%d')
     user.role = request.json['role']

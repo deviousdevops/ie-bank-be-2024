@@ -1,6 +1,5 @@
 from werkzeug.security import generate_password_hash
 from datetime import datetime
-from iebank_api import db, app
 from iebank_api.models import User
 
 def create_admin_user():
@@ -38,4 +37,5 @@ def create_admin_user():
         print(f"Admin user '{username}' created successfully.")
 
 if __name__ == '__main__':
-    create_admin_user()
+    from iebank_api import db, app
+    create_admin_user(app, db)

@@ -27,21 +27,21 @@ elif env == 'development':
 elif env == 'ghci':
     app.config.from_object('config.GithubCIConfig')
 
-# Configure Azure Application Insights
-app.config['APPINSIGHTS_CONNECTION_STRING'] = os.environ.get('APPINSIGHTS_CONNECTION_STRING')
+# # Configure Azure Application Insights
+# app.config['APPINSIGHTS_CONNECTION_STRING'] = os.environ.get('APPINSIGHTS_CONNECTION_STRING')
 
-if app.config['APPINSIGHTS_CONNECTION_STRING']:
-    try:
-        handler = AzureLogHandler(
-            connection_string=app.config['APPINSIGHTS_CONNECTION_STRING']
-        )
-        logger = logging.getLogger(__name__)
-        logger.addHandler(handler)
-        logger.setLevel(logging.INFO)
-        app.logger.addHandler(handler)
-        app.logger.info("Azure Application Insights logging is configured.")
-    except Exception as e:
-        app.logger.error(f"Failed to configure Azure Application Insights: {e}")
+# if app.config['APPINSIGHTS_CONNECTION_STRING']:
+#     try:
+#         handler = AzureLogHandler(
+#             connection_string=app.config['APPINSIGHTS_CONNECTION_STRING']
+#         )
+#         logger = logging.getLogger(__name__)
+#         logger.addHandler(handler)
+#         logger.setLevel(logging.INFO)
+#         app.logger.addHandler(handler)
+#         app.logger.info("Azure Application Insights logging is configured.")
+#     except Exception as e:
+#         app.logger.error(f"Failed to configure Azure Application Insights: {e}")
 
 
 from iebank_api.models import Account, User, Transaction

@@ -31,11 +31,18 @@ elif env == 'ghci':
 app.config['APPINSIGHTS_INSTRUMENTATIONKEY'] = os.environ.get('APPINSIGHTS_INSTRUMENTATIONKEY')
 
 if app.config['APPINSIGHTS_INSTRUMENTATIONKEY']:
-    handler = AzureLogHandler(connection_string=f'InstrumentationKey={app.config["APPINSIGHTS_INSTRUMENTATIONKEY"]}')
-    logger = logging.getLogger(__name__)
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
-    app.logger.addHandler(handler)
+    try:
+        handler = AzureLogHandler(
+            connection_string=f'InstrumentationKey={app.config["APPINSIGHTS_INSTRUMENTATIONKEY"]}'
+        )
+        logger = logging.getLogger(__name__)
+        logger.addHandler(handler)
+        logger.setLevel(logging.INFO)
+        app.logger.addHandler(handler)
+        app.logger.info("Azure Application Insights logging is configured.")
+    except Exception as e:
+        app.logger.error(f"Failed to configure Azure Application Insights: {e}")
+
 
 from iebank_api.models import Account, User, Transaction
 

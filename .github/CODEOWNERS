@@ -1,0 +1,5 @@
+# Assign Python files to the backend team
+*.py @Zeidtayyan
+
+# Assign database-related files to the DevOps team
+db/* @Zeidtayyan

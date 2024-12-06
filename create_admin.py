@@ -1,3 +1,4 @@
+'''
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 
@@ -36,3 +37,4 @@ def create_admin_user(app, db):
 
         print(f"Admin user '{username}' created successfully.")
 
+'''

@@ -69,6 +69,11 @@ def create_admin_user():
         )
 
         # Add the new user to the database
+        # if the new user does not already exist
+        if User.query.filter_by(username=username).first():
+            print(f"Admin user '{username}' already exists.")
+            return
+        
         db.session.add(new_user)
         db.session.commit()
 

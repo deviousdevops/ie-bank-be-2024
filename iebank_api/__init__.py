@@ -25,8 +25,12 @@ if env == 'local':
     app.config.from_object('config.LocalConfig')
 elif env == 'development':
     app.config.from_object('config.DevelopmentConfig')
+elif env == 'uat':
+    app.config.from_object('config.UATConfig')
 elif env == 'ghci':
     app.config.from_object('config.GithubCIConfig')
+elif env == 'prod':
+    app.config.from_object('config.ProductionConfig')
 
 # Configure Azure Application Insights
 app.config['APPINSIGHTS_CONNECTION_STRING'] = os.environ.get('APPINSIGHTS_CONNECTION_STRING')

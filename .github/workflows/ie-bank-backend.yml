@@ -105,31 +105,11 @@ jobs:
         app-name: ${{ env.BACKEND_WEBAPP_DEV }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
-        
-  run-postman-tests:
-    runs-on: ubuntu-latest
-    environment: 'UAT'  # Specify the environment name that matches what you created
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '16'
-      - name: Install Newman
-        run: npm install -g newman
-      - name: Fetch Postman Collection
-        run: |
-          curl -L -o collection.json "https://api.postman.com/collections/${{ secrets.POSTMAN_COLLECTION_UID }}?apikey=${{ secrets.POSTMAN_API_KEY }}"
-      - name: Fetch Postman Environment
-        run: |
-          curl -L -o environment.json "https://api.postman.com/environments/${{ secrets.POSTMAN_ENVIRONMENT_UID }}?apikey=${{ secrets.POSTMAN_API_KEY }}"
-      - name: Run Newman Tests
-        run: newman run collection.json -e environment.json
 
   deploy-uat:
     if: github.event.pull_request.base.ref == 'main' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    needs: [build, deploy-dev,run-postman-tests]
+    needs: [build, deploy-dev]
     environment:
       name: 'UAT'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
@@ -152,3 +132,25 @@ jobs:
         app-name: ${{ env.BACKEND_WEBAPP_UAT }}
         images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
+
+
+  run-postman-tests:
+    runs-on: ubuntu-latest
+    needs: deploy-uat
+    environment: 'UAT'  # Specify the environment name that matches what you created
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+      - name: Install Newman
+        run: npm install -g newman
+      - name: Fetch Postman Collection
+        run: |
+          curl -L -o collection.json "https://api.postman.com/collections/${{ secrets.POSTMAN_COLLECTION_UID }}?apikey=${{ secrets.POSTMAN_API_KEY }}"
+      - name: Fetch Postman Environment
+        run: |
+          curl -L -o environment.json "https://api.postman.com/environments/${{ secrets.POSTMAN_ENVIRONMENT_UID }}?apikey=${{ secrets.POSTMAN_API_KEY }}"
+      - name: Run Newman Tests
+        run: newman run collection.json -e environment.json

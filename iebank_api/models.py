@@ -75,3 +75,4 @@ class Transaction(db.Model):
         self.to_account_id = to_account_id
         self.amount = amount
         self.currency = currency  # Initialize currency
+        

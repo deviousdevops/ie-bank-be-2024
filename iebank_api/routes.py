@@ -5,6 +5,26 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import jwt
 from functools import wraps
+import logging
+from opencensus.ext.azure.log_exporter import AzureLogHandler
+import time
+
+# Configure Azure Application Insights
+@app.before_request
+def start_timer():
+    request.start_time = time.time()
+
+@app.after_request
+def log_request(response):
+    if request.path == '/favicon.ico':
+        return response
+
+    # Calculate the duration of the request
+    duration = time.time() - request.start_time
+
+    # Log the request details
+    app.logger.info(f"{request.method} {request.path} {response.status_code} {duration:.6f}s")
+    return response
 
 @app.route('/')
 def hello_world():

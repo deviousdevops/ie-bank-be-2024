@@ -13,8 +13,7 @@ permissions:
 env:
   BACKEND_WEBAPP_DEV: devious-be-dev
   BACKEND_WEBAPP_UAT: devious-be-uat
-  ACR_NAME_DEV: deviousacrdev
-  ACR_NAME_UAT: deviousacruat
+  ACR_NAME: deviousacrdev
   IMAGE_NAME: backend
 
 jobs:
@@ -38,9 +37,7 @@ jobs:
     - name: Lint with flake8
       run: |
         pip install flake8 pytest
-        # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
@@ -51,36 +48,8 @@ jobs:
         name: python-app
         path: |
           .
-    - uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: 'Get ACR credentials from Key Vault'
-      uses: azure/get-keyvault-secrets@v1
-      with:
-        keyvault: "devious-kv25-dev"
-        secrets: 'registry-username, registry-password'
-      id: keyvaultSecrets
-
-    - name: 'Build and push image'
-      uses: azure/docker-login@v1
-      with:
-        login-server: ${{ env.ACR_NAME_DEV }}.azurecr.io
-        username: ${{ steps.keyvaultSecrets.outputs.registry-username }}
-        password: ${{ steps.keyvaultSecrets.outputs.registry-password }}
-
-    - name: Build and push container image
-      run: |
-        # Build and tag the image
-        docker build . -t ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}
-        docker tag ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }} ${{ env.ACR_NAME_DEV }}.azurecr.io/backend:${{ github.sha }}
-
-        # Push all tags
-        docker push ${{ env.ACR_NAME_DEV }}.azurecr.io/backend:${{ github.sha }}
-        docker push ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}
 
   deploy-dev:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     needs: build
     environment:
@@ -93,23 +62,38 @@ jobs:
       with:
         name: python-app
         path: .
-
     - uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-
+    - name: 'Get ACR credentials from Dev Key Vault'
+      uses: azure/get-keyvault-secrets@v1
+      with:
+        keyvault: "devious-kv25-dev"
+        secrets: 'registry-username, registry-password'
+      id: devKeyvaultSecrets
+    - name: 'Build and push image for Dev'
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.ACR_NAME }}.azurecr.io
+        username: ${{ steps.devKeyvaultSecrets.outputs.registry-username }}
+        password: ${{ steps.devKeyvaultSecrets.outputs.registry-password }}
+    - name: Build and push container image for Dev
+      run: |
+        docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-dev
+        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-dev ${{ env.ACR_NAME }}.azurecr.io/backend-dev:${{ github.sha }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/backend-dev:${{ github.sha }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-dev
     - name: 'Deploy to Azure Web App Development'
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ env.BACKEND_WEBAPP_DEV }}
-        images: ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+        images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-dev:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
 
   deploy-uat:
-    if: (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'main') || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: [build, deploy-dev]
+    needs: build
     environment:
       name: 'UAT'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
@@ -120,44 +104,52 @@ jobs:
       with:
         name: python-app
         path: .
-
     - uses: azure/login@v2
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: 'Get ACR credentials from Key Vault'
+    - name: 'Get ACR credentials from UAT Key Vault'
       uses: azure/get-keyvault-secrets@v1
       with:
-        keyvault: "devious-kv21-uat"  # Specify the UAT Key Vault name here
+        keyvault: "devious-kv21-uat"
         secrets: 'registry-username, registry-password'
-      id: keyvaultSecrets
-
+      id: uatKeyvaultSecrets
+    - name: 'Build and push image for UAT'
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.ACR_NAME }}.azurecr.io
+        username: ${{ steps.uatKeyvaultSecrets.outputs.registry-username }}
+        password: ${{ steps.uatKeyvaultSecrets.outputs.registry-password }}
+    - name: Build and push container image for UAT
+      run: |
+        docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-uat
+        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-uat ${{ env.ACR_NAME }}.azurecr.io/backend-uat:${{ github.sha }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/backend-uat:${{ github.sha }}
+        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-uat
     - name: 'Deploy to Azure Web App UAT'
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ env.BACKEND_WEBAPP_UAT }}
-        images: ${{ env.ACR_NAME_UAT }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+        images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-uat:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
-
 
   run-postman-tests:
     runs-on: ubuntu-latest
     needs: deploy-uat
-    environment: 'UAT'  # Specify the environment name that matches what you created
+    environment: 'UAT'
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '16'
-      - name: Install Newman
-        run: npm install -g newman
-      - name: Fetch Postman Collection
-        run: |
-          curl -L -o collection.json "https://api.postman.com/collections/${{ secrets.POSTMAN_COLLECTION_UID }}?apikey=${{ secrets.POSTMAN_API_KEY }}"
-      - name: Fetch Postman Environment
-        run: |
-          curl -L -o environment.json "https://api.postman.com/environments/${{ secrets.POSTMAN_ENVIRONMENT_UID }}?apikey=${{ secrets.POSTMAN_API_KEY }}"
-      - name: Run Newman Tests
-        run: newman run collection.json -e environment.json
+    - uses: actions/checkout@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '16'
+    - name: Install Newman
+      run: npm install -g newman
+    - name: Fetch Postman Collection
+      run: |
+        curl -L -o collection.json "https://api.postman.com/collections/${{ secrets.POSTMAN_COLLECTION_UID }}?apikey=${{ secrets.POSTMAN_API_KEY }}"
+    - name: Fetch Postman Environment
+      run: |
+        curl -L -o environment.json "https://api.postman.com/environments/${{ secrets.POSTMAN_ENVIRONMENT_UID }}?apikey=${{ secrets.POSTMAN_API_KEY }}"
+    - name: Run Newman Tests
+      run: newman run collection.json -e environment.json

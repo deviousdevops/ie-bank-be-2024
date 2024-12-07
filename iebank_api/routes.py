@@ -5,6 +5,26 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 import jwt
 from functools import wraps
+import logging
+from opencensus.ext.azure.log_exporter import AzureLogHandler
+import time
+
+# Configure Azure Application Insights
+@app.before_request
+def start_timer():
+    request.start_time = time.time()
+
+@app.after_request
+def log_request(response):
+    if request.path == '/favicon.ico':
+        return response
+
+    # Calculate the duration of the request
+    duration = time.time() - request.start_time
+
+    # Log the request details
+    app.logger.info(f"{request.method} {request.path} {response.status_code} {duration:.6f}s")
+    return response
 
 @app.route('/')
 def hello_world():
@@ -316,7 +336,8 @@ def update_user(current_user, id):
 
     user.username = request.json['username']
     user.email = request.json['email']
-    user.password = generate_password_hash(request.json['password'], method='pbkdf2:sha256')
+    if 'password' in request.json and request.json['password']:
+        user.password = generate_password_hash(request.json['password'], method='pbkdf2:sha256')
     user.country = request.json['country']
     user.date_of_birth = datetime.strptime(request.json['date_of_birth'], '%Y-%m-%d')
     user.role = request.json['role']

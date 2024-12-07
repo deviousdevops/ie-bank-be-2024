@@ -58,7 +58,7 @@ jobs:
     - name: 'Get ACR credentials from Key Vault'
       uses: azure/get-keyvault-secrets@v1
       with:
-        keyvault: "devious-kv12-dev"
+        keyvault: "devious-kv25-dev"
         secrets: 'registry-username, registry-password'
       id: keyvaultSecrets
 

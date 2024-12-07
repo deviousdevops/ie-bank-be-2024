@@ -29,10 +29,10 @@ elif env == 'ghci':
     app.config.from_object('config.GithubCIConfig')
 
 # Configure Azure Application Insights
-app.config['APPINSIGHTS_INSTRUMENTATIONKEY'] = os.environ.get('APPINSIGHTS_INSTRUMENTATIONKEY')
+app.config['APPINSIGHTS_CONNECTION_STRING'] = os.environ.get('APPINSIGHTS_CONNECTION_STRING')
 
-if app.config['APPINSIGHTS_INSTRUMENTATIONKEY']:
-    handler = AzureLogHandler(connection_string=f'InstrumentationKey={app.config["APPINSIGHTS_INSTRUMENTATIONKEY"]}')
+if app.config['APPINSIGHTS_CONNECTION_STRING']:
+    handler = AzureLogHandler(connection_string=app.config['APPINSIGHTS_CONNECTION_STRING'])
     logger = logging.getLogger(__name__)
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)

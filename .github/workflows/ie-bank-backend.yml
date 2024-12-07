@@ -125,6 +125,13 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    - name: 'Get ACR credentials from Key Vault'
+      uses: azure/get-keyvault-secrets@v1
+      with:
+        keyvault: "devious-kv25-uat"  # Specify the UAT Key Vault name here
+        secrets: 'registry-username, registry-password'
+      id: keyvaultSecrets
+
     - name: 'Deploy to Azure Web App UAT'
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v3

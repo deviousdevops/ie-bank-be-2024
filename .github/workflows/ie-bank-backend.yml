@@ -13,12 +13,12 @@ permissions:
 env:
   BACKEND_WEBAPP_DEV: devious-be-dev
   BACKEND_WEBAPP_UAT: devious-be-uat
-  ACR_NAME: deviousacrdev
+  ACR_NAME_DEV: deviousacrdev
+  ACR_NAME_UAT: deviousacruat
   IMAGE_NAME: backend
 
 jobs:
   build:
-  
     runs-on: ubuntu-latest
     env:
       ENV: ghci
@@ -65,19 +65,19 @@ jobs:
     - name: 'Build and push image'
       uses: azure/docker-login@v1
       with:
-        login-server: ${{ env.ACR_NAME }}.azurecr.io
+        login-server: ${{ env.ACR_NAME_DEV }}.azurecr.io
         username: ${{ steps.keyvaultSecrets.outputs.registry-username }}
         password: ${{ steps.keyvaultSecrets.outputs.registry-password }}
 
     - name: Build and push container image
       run: |
         # Build and tag the image
-        docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}
-        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }} ${{ env.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
+        docker build . -t ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}
+        docker tag ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }} ${{ env.ACR_NAME_DEV }}.azurecr.io/backend:${{ github.sha }}
 
         # Push all tags
-        docker push ${{ env.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
-        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}
+        docker push ${{ env.ACR_NAME_DEV }}.azurecr.io/backend:${{ github.sha }}
+        docker push ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}
 
   deploy-dev:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
@@ -103,7 +103,7 @@ jobs:
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ env.BACKEND_WEBAPP_DEV }}
-        images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+        images: ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
 
   deploy-uat:
@@ -137,7 +137,7 @@ jobs:
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ env.BACKEND_WEBAPP_UAT }}
-        images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
+        images: ${{ env.ACR_NAME_UAT }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
 
 

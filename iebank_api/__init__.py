@@ -27,7 +27,7 @@ elif env == 'development':
 elif env == 'ghci':
     app.config.from_object('config.GithubCIConfig')
 
-# # Configure Azure Application Insights
+# Configure Azure Application Insights
 # app.config['APPINSIGHTS_CONNECTION_STRING'] = os.environ.get('APPINSIGHTS_CONNECTION_STRING')
 
 # if app.config['APPINSIGHTS_CONNECTION_STRING']:

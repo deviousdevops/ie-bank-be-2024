@@ -119,10 +119,10 @@ jobs:
         run: npm install -g newman
       - name: Fetch Postman Collection
         run: |
-          curl -L -o collection.json "https://api.postman.com/collections/${{ env.POSTMAN_COLLECTION_UID }}?apikey=${{ env.POSTMAN_API_KEY }}"
+          curl -L -o collection.json "https://api.postman.com/collections/${{ secrets.POSTMAN_COLLECTION_UID }}?apikey=${{ secrets.POSTMAN_API_KEY }}"
       - name: Fetch Postman Environment
         run: |
-          curl -L -o environment.json "https://api.postman.com/environments/${{ env.POSTMAN_ENVIRONMENT_UID }}?apikey=${{ env.POSTMAN_API_KEY }}"
+          curl -L -o environment.json "https://api.postman.com/environments/${{ secrets.POSTMAN_ENVIRONMENT_UID }}?apikey=${{ secrets.POSTMAN_API_KEY }}"
       - name: Run Newman Tests
         run: newman run collection.json -e environment.json
 

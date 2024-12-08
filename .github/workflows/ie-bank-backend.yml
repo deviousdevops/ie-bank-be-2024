@@ -69,7 +69,7 @@ jobs:
     - name: 'Get ACR credentials from Dev Key Vault'
       uses: azure/get-keyvault-secrets@v1
       with:
-        keyvault: "devious-kv26-dev"
+        keyvault: "devious-kv28-dev"
         secrets: 'registry-username, registry-password'
       id: devKeyvaultSecrets
     - name: 'Build and push image for Dev'
@@ -111,7 +111,7 @@ jobs:
     - name: 'Get ACR credentials from UAT Key Vault'
       uses: azure/get-keyvault-secrets@v1
       with:
-        keyvault: "devious-kv22-uat"
+        keyvault: "devious-kv28-uat"
         secrets: 'registry-username, registry-password'
       id: uatKeyvaultSecrets
     - name: 'Build and push image for UAT'
@@ -154,7 +154,7 @@ jobs:
     - name: 'Get ACR credentials from Prod Key Vault'
       uses: azure/get-keyvault-secrets@v1
       with:
-        keyvault: "devious-kv20-prod"
+        keyvault: "devious-kv28-prod"
         secrets: 'registry-username, registry-password'
       id: prodKeyvaultSecrets
 

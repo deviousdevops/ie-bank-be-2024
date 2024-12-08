@@ -1,0 +1,1640 @@
+{
+	"info": {
+		"_postman_id": "8cf5a109-5598-4057-b77a-532329f01226",
+		"name": "DEVIOUSDEVOPS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "38767372"
+	},
+	"item": [
+		{
+			"name": "Register",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('country');",
+							"    pm.expect(responseData).to.have.property('date_of_birth');",
+							"    pm.expect(responseData).to.have.property('email');",
+							"    pm.expect(responseData).to.have.property('id');",
+							"    pm.expect(responseData).to.have.property('role');",
+							"    pm.expect(responseData).to.have.property('status');",
+							"    pm.expect(responseData).to.have.property('username');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Email is in a valid format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.email).to.match(/^([\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4})?$/);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Date of birth is in a valid date format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('date_of_birth');",
+							"    const dateOfBirth = new Date(responseData.date_of_birth);",
+							"    pm.expect(dateOfBirth.toString()).to.not.equal(\"Invalid Date\");",
+							"    const datePart = dateOfBirth.toISOString().split('T')[0];",
+							"    pm.expect(datePart).to.match(/^\\d{4}-\\d{2}-\\d{2}$/);",
+							"});",
+							"",
+							"pm.test(\"Role is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.role).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Role should not be empty\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Set all variables to their default values\r",
+							"pm.environment.set(\"JWT_TOKEN\", null); // Assuming the default should be null or specify a default token\r",
+							"pm.environment.set(\"account_numbers\", JSON.stringify([]));\r",
+							"pm.environment.set(\"user_ids\", JSON.stringify([]));\r",
+							"pm.environment.set(\"current_account\", null);\r",
+							"pm.environment.set(\"current_user_id\", null);\r",
+							"pm.environment.set(\"account_ids\", JSON.stringify([]));\r",
+							"\r",
+							"console.log(\"All environment variables have been reset to default.\");\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"testuser\",\r\n    \"password\": \"password123\",\r\n    \"email\": \"test@gmail.com\",\r\n    \"country\": \"Spain\",\r\n    \"date_of_birth\": \"1990-01-01\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/register",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Parse the response JSON",
+							"let response;",
+							"try {",
+							"    response = pm.response.json();",
+							"} catch (e) {",
+							"    console.log(\"Response is not valid JSON:\", pm.response.text());",
+							"    throw new Error(\"Invalid JSON response\");",
+							"}",
+							"",
+							"// Test the status code",
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"// Test content type",
+							"pm.test(\"Content type is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							"",
+							"// Test required fields",
+							"pm.test(\"Response has the required fields - message, token, user\", function () {",
+							"    pm.expect(response).to.be.an('object');",
+							"    pm.expect(response.message).to.exist;",
+							"    pm.expect(response.token).to.exist;",
+							"    pm.expect(response.user).to.exist;",
+							"});",
+							"",
+							"// Test user properties",
+							"pm.test(\"User object should exist and have specific properties\", function () {",
+							"    pm.expect(response.user).to.exist;",
+							"    pm.expect(response.user).to.have.property('country');",
+							"    pm.expect(response.user).to.have.property('date_of_birth');",
+							"    pm.expect(response.user).to.have.property('email');",
+							"    pm.expect(response.user).to.have.property('id');",
+							"    pm.expect(response.user).to.have.property('role');",
+							"    pm.expect(response.user).to.have.property('status');",
+							"    pm.expect(response.user).to.have.property('username');",
+							"});",
+							"",
+							"// Test email format",
+							"pm.test(\"Email is in a valid format\", function () {",
+							"    pm.expect(response.user.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/, \"Email should be in a valid format\");",
+							"});",
+							"",
+							"// Save the JWT token",
+							"if (response.token) {",
+							"    pm.environment.set(\"JWT_TOKEN\", response.token);",
+							"}",
+							"",
+							"// Manage user IDs",
+							"let userIds = pm.environment.get(\"user_ids\"); // Retrieve the user_ids variable",
+							"userIds = userIds ? JSON.parse(userIds) : []; // Parse it into an array or initialize it",
+							"",
+							"if (response.user && response.user.id) {",
+							"    userIds.push(response.user.id); // Add the new user ID to the array",
+							"    pm.environment.set(\"user_ids\", JSON.stringify(userIds)); // Save the updated array as a JSON string",
+							"    console.log(\"Updated User IDs:\", userIds);",
+							"",
+							"    // Set the current_user_id environment variable",
+							"    pm.environment.set(\"current_user_id\", response.user.id);",
+							"    console.log(\"Current user ID set to:\", response.user.id);",
+							"}",
+							"",
+							"// Test user creation",
+							"pm.test(\"User created successfully\", function () {",
+							"    pm.expect(response.user).to.have.property(\"id\");",
+							"    pm.expect(response.user.username).to.equal(\"testuser\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"testuser\",\r\n    \"password\": \"password123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/login",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Account",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the response",
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.account_number).to.exist;",
+							"    pm.expect(responseData.balance).to.exist;",
+							"    pm.expect(responseData.country).to.exist;",
+							"    pm.expect(responseData.created_at).to.exist;",
+							"    pm.expect(responseData.currency).to.exist;",
+							"    pm.expect(responseData.id).to.exist;",
+							"    pm.expect(responseData.name).to.exist;",
+							"    pm.expect(responseData.status).to.exist;",
+							"});",
+							"",
+							"pm.test(\"Account number is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.account_number).to.be.a('string').and.to.have.lengthOf.at.least(1);",
+							"});",
+							"",
+							"pm.test(\"Balance is a non-negative number\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.balance).to.be.a('number').and.to.be.at.least(0);",
+							"});",
+							"",
+							"pm.test(\"Created_at is a valid date\", function () {",
+							"    const responseData = pm.response.json();",
+							"    const createdAt = new Date(responseData.created_at);",
+							"    pm.expect(createdAt.toString()).not.to.equal(\"Invalid Date\");",
+							"});",
+							"",
+							"// Get the response and account number",
+							"const response = pm.response.json();",
+							"",
+							"if (response && response.account_number) {",
+							"    // Retrieve the existing array from the environment or initialize a new one",
+							"    let accountNumbers = pm.environment.get(\"account_numbers\");",
+							"    accountNumbers = accountNumbers ? JSON.parse(accountNumbers) : [];",
+							"",
+							"    // Add the new account number to the array",
+							"    accountNumbers.push(response.account_number);",
+							"",
+							"    // Save the updated array back to the environment",
+							"    pm.environment.set(\"account_numbers\", JSON.stringify(accountNumbers));",
+							"",
+							"    // Log the updated array",
+							"    console.log(\"Updated account numbers:\", accountNumbers);",
+							"}",
+							"",
+							"// Set the current account ID to the environment variable",
+							"if (response && response.id) {",
+							"    pm.environment.set(\"current_account\", response.id);",
+							"",
+							"    // Log the current account ID",
+							"    console.log(\"Current account ID set to:\", response.id);",
+							"}",
+							"// Set the current account ID to the environment variable",
+							"if (response && response.id) {",
+							"    // Retrieve the existing array of account IDs from the environment or initialize a new one",
+							"    let accountIds = pm.environment.get(\"account_ids\");",
+							"    accountIds = accountIds ? JSON.parse(accountIds) : [];",
+							"",
+							"    // Add the new account ID to the array",
+							"    accountIds.push(response.id);",
+							"",
+							"    // Save the updated array back to the environment",
+							"    pm.environment.set(\"account_ids\", JSON.stringify(accountIds));",
+							"",
+							"    // Set the current account ID to the environment variable",
+							"    pm.environment.set(\"current_account\", response.id);",
+							"}",
+							"",
+							"// Test that the account number exists in the response",
+							"pm.test(\"Account created successfully\", function () {",
+							"    pm.expect(response).to.have.property(\"account_number\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Savings\",\r\n    \"currency\": \"USD\",\r\n    \"balance\": 5000,\r\n    \"country\": \"USA\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/accounts",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Account Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the response",
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.account_number).to.exist;",
+							"    pm.expect(responseData.balance).to.exist;",
+							"    pm.expect(responseData.country).to.exist;",
+							"    pm.expect(responseData.created_at).to.exist;",
+							"    pm.expect(responseData.currency).to.exist;",
+							"    pm.expect(responseData.id).to.exist;",
+							"    pm.expect(responseData.name).to.exist;",
+							"    pm.expect(responseData.status).to.exist;",
+							"});",
+							"",
+							"pm.test(\"Account number is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.account_number).to.be.a('string').and.to.have.lengthOf.at.least(1);",
+							"});",
+							"",
+							"pm.test(\"Balance is a non-negative number\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.balance).to.be.a('number').and.to.be.at.least(0);",
+							"});",
+							"",
+							"pm.test(\"Created_at is a valid date\", function () {",
+							"    const responseData = pm.response.json();",
+							"    const createdAt = new Date(responseData.created_at);",
+							"    pm.expect(createdAt.toString()).not.to.equal(\"Invalid Date\");",
+							"});",
+							"",
+							"// Get the response and account number",
+							"const response = pm.response.json();",
+							"",
+							"if (response && response.account_number) {",
+							"    // Retrieve the existing array from the environment or initialize a new one",
+							"    let accountNumbers = pm.environment.get(\"account_numbers\");",
+							"    accountNumbers = accountNumbers ? JSON.parse(accountNumbers) : [];",
+							"",
+							"    // Add the new account number to the array",
+							"    accountNumbers.push(response.account_number);",
+							"",
+							"    // Save the updated array back to the environment",
+							"    pm.environment.set(\"account_numbers\", JSON.stringify(accountNumbers));",
+							"",
+							"    // Log the updated array",
+							"    console.log(\"Updated account numbers:\", accountNumbers);",
+							"}",
+							"",
+							"// Set the current account ID to the environment variable",
+							"if (response && response.id) {",
+							"    pm.environment.set(\"current_account\", response.id);",
+							"",
+							"    // Log the current account ID",
+							"    console.log(\"Current account ID set to:\", response.id);",
+							"}",
+							"// Set the current account ID to the environment variable",
+							"if (response && response.id) {",
+							"    // Retrieve the existing array of account IDs from the environment or initialize a new one",
+							"    let accountIds = pm.environment.get(\"account_ids\");",
+							"    accountIds = accountIds ? JSON.parse(accountIds) : [];",
+							"",
+							"    // Add the new account ID to the array",
+							"    accountIds.push(response.id);",
+							"",
+							"    // Save the updated array back to the environment",
+							"    pm.environment.set(\"account_ids\", JSON.stringify(accountIds));",
+							"",
+							"    // Set the current account ID to the environment variable",
+							"    pm.environment.set(\"current_account\", response.id);",
+							"}",
+							"",
+							"// Test that the account number exists in the response",
+							"pm.test(\"Account created successfully\", function () {",
+							"    pm.expect(response).to.have.property(\"account_number\");",
+							"});",
+							"",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Savings\",\r\n    \"currency\": \"USD\",\r\n    \"balance\": 5000,\r\n    \"country\": \"USA\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/accounts",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Account Copy 2",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the response",
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.account_number).to.exist;",
+							"    pm.expect(responseData.balance).to.exist;",
+							"    pm.expect(responseData.country).to.exist;",
+							"    pm.expect(responseData.created_at).to.exist;",
+							"    pm.expect(responseData.currency).to.exist;",
+							"    pm.expect(responseData.id).to.exist;",
+							"    pm.expect(responseData.name).to.exist;",
+							"    pm.expect(responseData.status).to.exist;",
+							"});",
+							"",
+							"pm.test(\"Account number is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.account_number).to.be.a('string').and.to.have.lengthOf.at.least(1);",
+							"});",
+							"",
+							"pm.test(\"Balance is a non-negative number\", function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.balance).to.be.a('number').and.to.be.at.least(0);",
+							"});",
+							"",
+							"pm.test(\"Created_at is a valid date\", function () {",
+							"    const responseData = pm.response.json();",
+							"    const createdAt = new Date(responseData.created_at);",
+							"    pm.expect(createdAt.toString()).not.to.equal(\"Invalid Date\");",
+							"});",
+							"",
+							"// Get the response and account number",
+							"const response = pm.response.json();",
+							"",
+							"if (response && response.account_number) {",
+							"    // Retrieve the existing array from the environment or initialize a new one",
+							"    let accountNumbers = pm.environment.get(\"account_numbers\");",
+							"    accountNumbers = accountNumbers ? JSON.parse(accountNumbers) : [];",
+							"",
+							"    // Add the new account number to the array",
+							"    accountNumbers.push(response.account_number);",
+							"",
+							"    // Save the updated array back to the environment",
+							"    pm.environment.set(\"account_numbers\", JSON.stringify(accountNumbers));",
+							"",
+							"    // Log the updated array",
+							"    console.log(\"Updated account numbers:\", accountNumbers);",
+							"}",
+							"",
+							"// Set the current account ID to the environment variable",
+							"if (response && response.id) {",
+							"    pm.environment.set(\"current_account\", response.id);",
+							"",
+							"    // Log the current account ID",
+							"    console.log(\"Current account ID set to:\", response.id);",
+							"}",
+							"// Set the current account ID to the environment variable",
+							"if (response && response.id) {",
+							"    // Retrieve the existing array of account IDs from the environment or initialize a new one",
+							"    let accountIds = pm.environment.get(\"account_ids\");",
+							"    accountIds = accountIds ? JSON.parse(accountIds) : [];",
+							"",
+							"    // Add the new account ID to the array",
+							"    accountIds.push(response.id);",
+							"",
+							"    // Save the updated array back to the environment",
+							"    pm.environment.set(\"account_ids\", JSON.stringify(accountIds));",
+							"",
+							"    // Set the current account ID to the environment variable",
+							"    pm.environment.set(\"current_account\", response.id);",
+							"}",
+							"",
+							"// Test that the account number exists in the response",
+							"pm.test(\"Account created successfully\", function () {",
+							"    pm.expect(response).to.have.property(\"account_number\");",
+							"});",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Savings3\",\r\n    \"currency\": \"USD\",\r\n    \"balance\": 5000,\r\n    \"country\": \"USA\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/accounts",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Make Transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Content type is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Message is a non-empty string\", function () {",
+							"  const responseData = pm.response.json();",
+							"  ",
+							"  pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Transaction object has all the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.transaction).to.be.an('object');",
+							"    pm.expect(responseData.transaction).to.have.property('amount');",
+							"    pm.expect(responseData.transaction).to.have.property('created_at');",
+							"    pm.expect(responseData.transaction).to.have.property('currency');",
+							"    pm.expect(responseData.transaction).to.have.property('from_account');",
+							"    pm.expect(responseData.transaction).to.have.property('id');",
+							"    pm.expect(responseData.transaction).to.have.property('status');",
+							"    pm.expect(responseData.transaction).to.have.property('to_account');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Amount is a non-negative number\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.transaction.amount).to.be.a('number');",
+							"    pm.expect(responseData.transaction.amount).to.be.at.least(0, \"Amount should be a non-negative number\");",
+							"});",
+							"",
+							"const response = pm.response.json();",
+							"",
+							"pm.test(\"Transaction successful\", function () {",
+							"    pm.expect(response).to.have.property(\"message\", \"Transaction successful!\");",
+							"    pm.expect(response).to.have.property(\"transaction\");",
+							"});",
+							"",
+							"console.log(\"Transaction completed:\", response.transaction);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Retrieve the account_numbers array from the environment\r",
+							"let accountNumbers = pm.environment.get(\"account_numbers\");\r",
+							"\r",
+							"// Parse the JSON string into a JavaScript array\r",
+							"accountNumbers = accountNumbers ? JSON.parse(accountNumbers) : [];\r",
+							"\r",
+							"// Check if there are at least two account numbers\r",
+							"if (accountNumbers.length >= 2) {\r",
+							"    // Extract the first and second account numbers\r",
+							"    pm.variables.set(\"from_account_number\", accountNumbers[0]);\r",
+							"    pm.variables.set(\"to_account_number\", accountNumbers[1]);\r",
+							"} else {\r",
+							"    // Throw an error if there aren't enough account numbers\r",
+							"    throw new Error(\"Not enough account numbers in the account_numbers array.\");\r",
+							"}\r",
+							"\r",
+							"// Log the extracted values for debugging\r",
+							"console.log(\"From Account:\", pm.variables.get(\"from_account_number\"));\r",
+							"console.log(\"To Account:\", pm.variables.get(\"to_account_number\"));\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"from_account_number\": \"{{from_account_number}}\",\r\n    \"to_account_number\": \"{{to_account_number}}\",\r\n    \"amount\": 1.0,\r\n    \"currency\": \"USD\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/transactions",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Portal",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Content-Type header is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Accounts array should exist and be non-empty\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.accounts).to.exist.and.to.be.an('array').and.to.have.lengthOf.at.least(1, \"Accounts array should not be empty\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Transactions array should exist and be an array\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.transactions).to.exist;",
+							"    pm.expect(responseData.transactions).to.be.an('array');",
+							"});",
+							"",
+							"",
+							"pm.test(\"User object properties are valid\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.user).to.be.an('object');",
+							"    pm.expect(responseData.user).to.have.property('country').that.is.a('string');",
+							"    pm.expect(responseData.user).to.have.property('date_of_birth').that.is.a('string');",
+							"    pm.expect(responseData.user).to.have.property('email').that.is.a('string');",
+							"    pm.expect(responseData.user).to.have.property('id').that.is.a('number');",
+							"    pm.expect(responseData.user).to.have.property('role').that.is.a('string');",
+							"    pm.expect(responseData.user).to.have.property('status').that.is.a('string');",
+							"    pm.expect(responseData.user).to.have.property('username').that.is.a('string');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/user_portal",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"user_portal"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Edit Account",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('account_number');",
+							"    pm.expect(responseData).to.have.property('balance');",
+							"    pm.expect(responseData).to.have.property('country');",
+							"    pm.expect(responseData).to.have.property('created_at');",
+							"    pm.expect(responseData).to.have.property('currency');",
+							"    pm.expect(responseData).to.have.property('id');",
+							"    pm.expect(responseData).to.have.property('name');",
+							"    pm.expect(responseData).to.have.property('status');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Balance is a non-negative number\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.balance).to.be.a('number');",
+							"    pm.expect(responseData.balance).to.be.at.least(0);",
+							"});",
+							"",
+							"",
+							"pm.test('Created_at is a valid date', function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    ",
+							"    const createdAt = new Date(responseData.created_at);",
+							"    ",
+							"    // Check that it's a valid date",
+							"    pm.expect(createdAt.toString()).not.to.equal('Invalid Date');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Name is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.name).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Name should not be empty\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Emergency Savings\",\r\n    \"id\":null\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/accounts/{{current_account}}",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"accounts",
+						"{{current_account}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Accounts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test('Response status code is 200', function () {",
+							"pm.collectionVariables.get(\"variable_key\");",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"})",
+							"",
+							"pm.test('Response has the required fields', function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.include.all.keys('account_number', 'balance', 'country', 'created_at', 'currency', 'id', 'name', 'status');",
+							"})",
+							"",
+							"pm.test('Account number is a non-empty string', function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.account_number).to.be.a('string').and.to.have.lengthOf.at.least(1, 'Account number should not be empty');",
+							"})",
+							"",
+							"pm.test('Balance is a non-negative number', function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData.balance).to.be.a('number');",
+							"    pm.expect(responseData.balance).to.be.at.least(0);",
+							"})",
+							"",
+							"pm.test('Created_at is a valid date', function () {",
+							"    const responseData = pm.response.json();",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    ",
+							"    const createdAt = new Date(responseData.created_at);",
+							"    ",
+							"    // Check that it's a valid date",
+							"    pm.expect(createdAt.toString()).not.to.equal('Invalid Date');",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Fetch the list of account IDs from the environment\r",
+							"let accountIds = JSON.parse(pm.environment.get(\"account_ids\") || \"[]\");\r",
+							"\r",
+							"if (accountIds.length > 0) {\r",
+							"    const accountIdToDelete = accountIds.shift(); // Get the first account ID and remove it from the array\r",
+							"    pm.environment.set(\"current_account\", accountIdToDelete); // Set the current account to delete\r",
+							"    pm.environment.set(\"account_ids\", JSON.stringify(accountIds)); // Save the updated array back to the environment\r",
+							"    console.log(\"Deleting account ID:\", accountIdToDelete);\r",
+							"    pm.variables.set(\"url\", `https://devious-be-dev.azurewebsites.net/accounts/${accountIdToDelete}`); // Set the request URL dynamically\r",
+							"} else {\r",
+							"    console.log(\"No more accounts to delete.\");\r",
+							"    postman.setNextRequest(null); // Stop further request execution if no accounts are left\r",
+							"}\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/accounts/{{current_account}}",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"accounts",
+						"{{current_account}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "LoginAdmin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the response",
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"pm.test(\"Content type is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							"",
+							"pm.test(\"Response has the required fields - message, token, user\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.message).to.exist;",
+							"    pm.expect(responseData.token).to.exist;",
+							"    pm.expect(responseData.user).to.exist;",
+							"});",
+							"",
+							"pm.test(\"User object should exist and have specific properties\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.user).to.exist;",
+							"    pm.expect(responseData.user).to.have.property('country');",
+							"    pm.expect(responseData.user).to.have.property('date_of_birth');",
+							"    pm.expect(responseData.user).to.have.property('email');",
+							"    pm.expect(responseData.user).to.have.property('id');",
+							"    pm.expect(responseData.user).to.have.property('role');",
+							"    pm.expect(responseData.user).to.have.property('status');",
+							"    pm.expect(responseData.user).to.have.property('username');",
+							"});",
+							"",
+							"pm.test(\"Email is in a valid format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.user.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/, \"Email should be in a valid format\");",
+							"});",
+							"",
+							"const response = pm.response.json();",
+							"",
+							"// Save the JWT token",
+							"pm.environment.set(\"JWT_TOKEN\", response.token);",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"adminuser\",\r\n    \"password\": \"adminpassword123\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/login",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Admin Portal",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.to.have.status(200));",
+							"});",
+							"",
+							"",
+							"pm.test(\"Content type is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Users array should exist and be an array\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.users).to.exist;",
+							"    pm.expect(responseData.users).to.be.an('array');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Each user object has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.users).to.be.an('array');",
+							"    ",
+							"    responseData.users.forEach(function(user) {",
+							"        pm.expect(user.country).to.exist;",
+							"        pm.expect(user.date_of_birth).to.exist;",
+							"        pm.expect(user.email).to.exist;",
+							"        pm.expect(user.id).to.exist;",
+							"        pm.expect(user.role).to.exist;",
+							"        pm.expect(user.status).to.exist;",
+							"        pm.expect(user.username).to.exist;",
+							"    });",
+							"});",
+							"",
+							"",
+							"pm.test(\"Email is in a valid format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    const emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;",
+							"",
+							"    pm.expect(responseData.users).to.be.an('array');",
+							"    responseData.users.forEach(function(user) {",
+							"        pm.expect(user.email).to.match(emailRegex);",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/admin_portal",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"admin_portal"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin Creates User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Attempt to parse the JSON response\r",
+							"let response;\r",
+							"try {\r",
+							"    response = pm.response.json();\r",
+							"} catch (e) {\r",
+							"    console.error(\"Error parsing response: \", e);\r",
+							"    // You could add a Postman test to fail here if the response is not valid JSON\r",
+							"    pm.test(\"Response is valid JSON\", function () {\r",
+							"        pm.expect.fail(\"Failed to parse JSON\");\r",
+							"    });\r",
+							"}\r",
+							"\r",
+							"// Retrieve or initialize the array of user IDs\r",
+							"let userIds = pm.environment.get(\"user_ids\");\r",
+							"userIds = userIds ? JSON.parse(userIds) : [];\r",
+							"\r",
+							"// Check if response and ID exist, then update the user IDs array\r",
+							"if (response && response.id) {\r",
+							"    userIds.push(response.id);\r",
+							"    pm.environment.set(\"user_ids\", JSON.stringify(userIds));\r",
+							"    console.log(\"User IDs updated:\", userIds);\r",
+							"}\r",
+							"\r",
+							"// Test to confirm user creation and log details\r",
+							"pm.test(\"User created successfully\", function () {\r",
+							"    pm.expect(response).to.have.property(\"id\");\r",
+							"    pm.expect(response).to.have.property(\"username\");\r",
+							"    console.log(\"Created user details:\", response);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"newuser\",\r\n    \"email\": \"newuser@example.com\",\r\n    \"password\": \"Test1234\",\r\n    \"country\": \"USA\",\r\n    \"date_of_birth\": \"2000-01-01\",\r\n    \"role\": \"user\",\r\n    \"status\": \"active\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/admin/users",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"admin",
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin Edits User",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Attempt to retrieve and parse the user IDs from the environment\r",
+							"let userIdsString = pm.environment.get(\"user_ids\");\r",
+							"let userIds = [];\r",
+							"\r",
+							"try {\r",
+							"    userIds = userIdsString ? JSON.parse(userIdsString) : [];\r",
+							"    console.log(\"Parsed User IDs:\", userIds); // Debugging log\r",
+							"} catch (error) {\r",
+							"    console.error(\"Error parsing user IDs:\", error);\r",
+							"    // Optional: Reset the variable to an empty array if parsing fails\r",
+							"    pm.environment.set(\"user_ids\", JSON.stringify([]));\r",
+							"}\r",
+							"\r",
+							"if (userIds.length > 0) {\r",
+							"    const userToEdit = userIds[0]; // Pick the first user in the list\r",
+							"    pm.environment.set(\"current_user_id\", userToEdit); // Save it to the environment for broader access\r",
+							"    console.log(\"Editing user ID:\", userToEdit);\r",
+							"} else {\r",
+							"    console.error(\"No users available to edit.\");\r",
+							"    // Optionally handle the scenario of no users to edit\r",
+							"    pm.environment.unset(\"current_user_id\"); // Clear the current_user_id if no users are found\r",
+							"}\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('country');",
+							"    pm.expect(responseData).to.have.property('date_of_birth');",
+							"    pm.expect(responseData).to.have.property('email');",
+							"    pm.expect(responseData).to.have.property('id');",
+							"    pm.expect(responseData).to.have.property('role');",
+							"    pm.expect(responseData).to.have.property('status');",
+							"    pm.expect(responseData).to.have.property('username');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Email is in a valid format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.email).to.be.a('string').and.to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/, \"Email should be in a valid format\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Date of birth is in a valid date format\", function () {",
+							"  const responseData = pm.response.json();",
+							"  ",
+							"  pm.expect(responseData).to.be.an('object');",
+							"  if (responseData.date_of_birth) {",
+							"    pm.expect(new Date(responseData.date_of_birth)).to.not.eql('Invalid Date', \"Date of birth should be a valid date\");",
+							"  }",
+							"});",
+							"",
+							"",
+							"pm.test(\"Role is a non-empty string\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.role).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Role should be a non-empty string\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"sampleuser\",\r\n    \"email\": \"sampleuser@example.com\",\r\n    \"password\": \"securepassword123\",\r\n    \"country\": \"USA\",\r\n    \"date_of_birth\": \"1990-01-01\",\r\n    \"role\": \"user\",\r\n    \"status\": \"active\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/admin/users/{{current_user_id}}",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"admin",
+						"users",
+						"{{current_user_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin Deletes Users",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Retrieve the array of user IDs from environment variables, or initialize it as an empty array if undefined\r",
+							"let userIdsString = pm.environment.get(\"user_ids\");\r",
+							"let userIds = userIdsString ? JSON.parse(userIdsString) : [];\r",
+							"\r",
+							"if (userIds.length > 0) {\r",
+							"    const userToDelete = userIds.shift(); // Remove the first user ID from the array\r",
+							"    pm.environment.set(\"current_user_id\", userToDelete); // Set it for this request in the environment\r",
+							"    pm.environment.set(\"user_ids\", JSON.stringify(userIds)); // Save the updated array back to the environment\r",
+							"    console.log(\"Deleting user ID:\", userToDelete);\r",
+							"    console.log(\"Updated User IDs List:\", userIds); // Log the updated list for verification\r",
+							"} else {\r",
+							"    console.log(\"No more users to delete.\");\r",
+							"}\r",
+							"\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.include.all.keys('country', 'date_of_birth', 'email', 'id', 'role', 'status', 'username');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Email is in a valid format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.email).to.be.a('string');",
+							"    pm.expect(responseData.email).to.match(/^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$/);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Date of birth is in a valid date format\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    if (responseData.date_of_birth) {",
+							"        // Matches dates like \"Sat, 01 Jan 2000 00:00:00 GMT\"",
+							"        const dateRegex = /^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$/;",
+							"        pm.expect(responseData.date_of_birth).to.match(dateRegex, \"Date of birth does not match expected format: Sat, 01 Jan 2000 00:00:00 GMT\");",
+							"    }",
+							"});",
+							"",
+							"",
+							"",
+							"pm.test(\"Role is a non-empty string\", function () {",
+							"  const responseData = pm.response.json();",
+							"",
+							"  pm.expect(responseData).to.be.an('object');",
+							"  pm.expect(responseData.role).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Role should be a non-empty string\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/admin/users/{{current_user_id}}",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"admin",
+						"users",
+						"{{current_user_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin Deletes Users 2",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Retrieve the array of user IDs from environment variables, or initialize it as an empty array if undefined\r",
+							"let userIdsString = pm.environment.get(\"user_ids\");\r",
+							"let userIds = userIdsString ? JSON.parse(userIdsString) : [];\r",
+							"\r",
+							"if (userIds.length > 0) {\r",
+							"    const userToDelete = userIds.shift(); // Remove the first user ID from the array\r",
+							"    pm.environment.set(\"current_user_id\", userToDelete); // Set it for this request in the environment\r",
+							"    pm.environment.set(\"user_ids\", JSON.stringify(userIds)); // Save the updated array back to the environment\r",
+							"    console.log(\"Deleting user ID:\", userToDelete);\r",
+							"    console.log(\"Updated User IDs List:\", userIds); // Log the updated list for verification\r",
+							"} else {\r",
+							"    console.log(\"No more users to delete.\");\r",
+							"}\r",
+							"\r",
+							"\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.expect(pm.response.code).to.equal(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('country');",
+							"    pm.expect(responseData).to.have.property('date_of_birth');",
+							"    pm.expect(responseData).to.have.property('email');",
+							"    pm.expect(responseData).to.have.property('id');",
+							"    pm.expect(responseData).to.have.property('role');",
+							"    pm.expect(responseData).to.have.property('status');",
+							"    pm.expect(responseData).to.have.property('username');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Email is in a valid format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData.email).to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Date of birth is in a valid date format\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    if (responseData.date_of_birth) {",
+							"        // Matches dates like \"Sat, 01 Jan 2000 00:00:00 GMT\"",
+							"        const dateRegex = /^[A-Z][a-z]{2}, \\d{2} [A-Z][a-z]{2} \\d{4} \\d{2}:\\d{2}:\\d{2} GMT$/;",
+							"        pm.expect(responseData.date_of_birth).to.match(dateRegex, \"Date of birth does not match expected format: Sat, 01 Jan 2000 00:00:00 GMT\");",
+							"    }",
+							"});",
+							"",
+							"",
+							"",
+							"pm.test(\"Role is a non-empty string\", function () {",
+							"  const responseData = pm.response.json();",
+							"  ",
+							"  pm.expect(responseData).to.be.an('object');",
+							"  pm.expect(responseData.role).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "x-access-token",
+						"value": "{{JWT_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://devious-be-uat.azurewebsites.net/admin/users/{{current_user_id}}",
+					"protocol": "https",
+					"host": [
+						"devious-be-uat",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"admin",
+						"users",
+						"{{current_user_id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

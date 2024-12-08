@@ -44,6 +44,7 @@ if app.config['APPINSIGHTS_CONNECTION_STRING']:
 
 from iebank_api.models import Account, User, Transaction
 
+
 def create_admin_user():
     with app.app_context():
         # Define the admin user details

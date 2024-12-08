@@ -176,7 +176,7 @@ jobs:
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v3
       with:
-        app-name: devious-be
+        app-name: devious-be-prod
         images: deviousacrprod.azurecr.io/backend-prod:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
 

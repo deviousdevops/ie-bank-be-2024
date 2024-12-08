@@ -13,7 +13,8 @@ permissions:
 env:
   BACKEND_WEBAPP_DEV: devious-be-dev
   BACKEND_WEBAPP_UAT: devious-be-uat
-  ACR_NAME: deviousacrdev
+  ACR_NAME_DEV: deviousacrdev
+  ACR_NAME_UAT: deviousacruat
   IMAGE_NAME: backend
 
 jobs:
@@ -74,21 +75,21 @@ jobs:
     - name: 'Build and push image for Dev'
       uses: azure/docker-login@v1
       with:
-        login-server: ${{ env.ACR_NAME }}.azurecr.io
+        login-server: ${{ env.ACR_NAME_DEV }}.azurecr.io
         username: ${{ steps.devKeyvaultSecrets.outputs.registry-username }}
         password: ${{ steps.devKeyvaultSecrets.outputs.registry-password }}
     - name: Build and push container image for Dev
       run: |
-        docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-dev
-        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-dev ${{ env.ACR_NAME }}.azurecr.io/backend-dev:${{ github.sha }}
-        docker push ${{ env.ACR_NAME }}.azurecr.io/backend-dev:${{ github.sha }}
-        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-dev
+        docker build . -t ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}-dev
+        docker tag ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}-dev ${{ env.ACR_NAME_DEV }}.azurecr.io/backend-dev:${{ github.sha }}
+        docker push ${{ env.ACR_NAME_DEV }}.azurecr.io/backend-dev:${{ github.sha }}
+        docker push ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}-dev
     - name: 'Deploy to Azure Web App Development'
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ env.BACKEND_WEBAPP_DEV }}
-        images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-dev:latest
+        images: ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}-dev:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
 
   deploy-uat:
@@ -116,21 +117,21 @@ jobs:
     - name: 'Build and push image for UAT'
       uses: azure/docker-login@v1
       with:
-        login-server: ${{ env.ACR_NAME }}.azurecr.io
+        login-server: ${{ env.ACR_NAME_UAT }}.azurecr.io
         username: ${{ steps.uatKeyvaultSecrets.outputs.registry-username }}
         password: ${{ steps.uatKeyvaultSecrets.outputs.registry-password }}
     - name: Build and push container image for UAT
       run: |
-        docker build . -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-uat
-        docker tag ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-uat ${{ env.ACR_NAME }}.azurecr.io/backend-uat:${{ github.sha }}
-        docker push ${{ env.ACR_NAME }}.azurecr.io/backend-uat:${{ github.sha }}
-        docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-uat
+        docker build . -t ${{ env.ACR_NAME_UAT }}.azurecr.io/${{ env.IMAGE_NAME }}-uat
+        docker tag ${{ env.ACR_NAME_UAT }}.azurecr.io/${{ env.IMAGE_NAME }}-uat ${{ env.ACR_NAME_UAT }}.azurecr.io/backend-uat:${{ github.sha }}
+        docker push ${{ env.ACR_NAME_UAT }}.azurecr.io/backend-uat:${{ github.sha }}
+        docker push ${{ env.ACR_NAME_UAT }}.azurecr.io/${{ env.IMAGE_NAME }}-uat
     - name: 'Deploy to Azure Web App UAT'
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v3
       with:
         app-name: ${{ env.BACKEND_WEBAPP_UAT }}
-        images: ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}-uat:latest
+        images: ${{ env.ACR_NAME_UAT }}.azurecr.io/${{ env.IMAGE_NAME }}-uat:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
 
   run-postman-tests:

@@ -1,15 +1,23 @@
+# This GitHub Actions workflow automates the CI/CD pipeline for the ie-bank-backend project.
+# It includes jobs for building, testing, and deploying the backend application to different environments (Development, UAT, and Production).
+# The workflow is triggered on push, pull request to the main branch, and manual dispatch.
+
+# Workflow name
 name: ie-bank-backend
 
+# Trigger events
 on:
   push:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
 
+# Permissions for the workflow
 permissions:
   contents: read
   id-token: write
 
+# Environment variables
 env:
   BACKEND_WEBAPP_DEV: devious-be-dev
   BACKEND_WEBAPP_UAT: devious-be-uat
@@ -17,6 +25,7 @@ env:
   ACR_NAME_UAT: deviousacruat
   IMAGE_NAME: backend
 
+# Build job
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -50,6 +59,7 @@ jobs:
         path: |
           .
 
+# Deploy to Development environment
   deploy-dev:
     runs-on: ubuntu-latest
     needs: build
@@ -92,6 +102,7 @@ jobs:
         images: ${{ env.ACR_NAME_DEV }}.azurecr.io/${{ env.IMAGE_NAME }}-dev:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
 
+# Deploy to UAT environment
   deploy-uat:
     runs-on: ubuntu-latest
     needs: build
@@ -134,6 +145,7 @@ jobs:
         images: ${{ env.ACR_NAME_UAT }}.azurecr.io/${{ env.IMAGE_NAME }}-uat:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
 
+# Deploy to Production environment
   deploy-prod:
     runs-on: ubuntu-latest
     needs: build
@@ -180,6 +192,7 @@ jobs:
         images: deviousacrprod.azurecr.io/backend-prod:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
 
+# Run Postman tests on UAT environment
   run-postman-tests:
     runs-on: ubuntu-latest
     needs: deploy-uat

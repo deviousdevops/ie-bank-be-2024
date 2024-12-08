@@ -134,6 +134,52 @@ jobs:
         images: ${{ env.ACR_NAME_UAT }}.azurecr.io/${{ env.IMAGE_NAME }}-uat:latest
         startup-command: flask run --host=0.0.0.0 --port=8000
 
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+    - name: Download artifact from build job
+      uses: actions/download-artifact@v4
+      with:
+        name: python-app
+
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: 'Get ACR credentials from Prod Key Vault'
+      uses: azure/get-keyvault-secrets@v1
+      with:
+        keyvault: "devious-kv20-prod"
+        secrets: 'registry-username, registry-password'
+      id: prodKeyvaultSecrets
+
+    - name: 'Build and push image for Prod'
+      uses: azure/docker-login@v1
+      with:
+        login-server: deviousacrprod.azurecr.io
+        username: ${{ steps.prodKeyvaultSecrets.outputs.registry-username }}
+        password: ${{ steps.prodKeyvaultSecrets.outputs.registry-password }}
+
+    - name: Build and push container image for Prod
+      run: |
+        docker build . -t deviousacrprod.azurecr.io/backend-prod
+        docker tag deviousacrprod.azurecr.io/backend-prod deviousacrprod.azurecr.io/backend-prod:${{ github.sha }}
+        docker push deviousacrprod.azurecr.io/backend-prod:${{ github.sha }}
+        docker push deviousacrprod.azurecr.io/backend-prod
+
+    - name: 'Deploy to Azure Web App Production'
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: devious-be
+        images: deviousacrprod.azurecr.io/backend-prod:latest
+        startup-command: flask run --host=0.0.0.0 --port=8000
+
   run-postman-tests:
     runs-on: ubuntu-latest
     needs: deploy-uat
